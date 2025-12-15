@@ -1,7 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@2.0.0";
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -135,33 +133,53 @@ serve(async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    // Note: Change this to your verified domain email once you verify a domain in Resend
-    // e.g., "Bosco By Shivangi <noreply@yourdomain.com>"
-    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "Bosco By Shivangi <onboarding@resend.dev>";
-    
-    const emailResponse = await resend.emails.send({
-      from: fromEmail,
-      to: [user.email],
-      subject: subject,
-      html: emailHtml,
-    });
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailAppPassword = Deno.env.get("GMAIL_APP_PASSWORD");
 
-    if (emailResponse.error) {
-      console.error("Email sending failed:", emailResponse.error);
-      // Return 200 with empty body to let Supabase fall back to default email
-      // This prevents the hook from failing completely
+    if (!gmailUser || !gmailAppPassword) {
+      console.error("Gmail credentials not configured");
       return new Response(JSON.stringify({}), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    console.log("Auth email sent successfully:", emailResponse.data);
-
-    return new Response(JSON.stringify({}), {
-      status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp.gmail.com",
+        port: 465,
+        tls: true,
+        auth: {
+          username: gmailUser,
+          password: gmailAppPassword,
+        },
+      },
     });
+
+    try {
+      await client.send({
+        from: `Bosco By Shivangi <${gmailUser}>`,
+        to: user.email,
+        subject: subject,
+        html: emailHtml,
+      });
+
+      await client.close();
+      console.log("Auth email sent successfully via Gmail to:", user.email);
+
+      return new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    } catch (smtpError) {
+      console.error("SMTP error:", smtpError);
+      await client.close();
+      // Return 200 to let Supabase continue (fallback to default email)
+      return new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
   } catch (error: unknown) {
     console.error("Error in send-auth-email function:", error);
