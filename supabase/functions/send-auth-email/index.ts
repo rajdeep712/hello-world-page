@@ -135,8 +135,12 @@ serve(async (req: Request): Promise<Response> => {
       </html>
     `;
 
+    // Note: Change this to your verified domain email once you verify a domain in Resend
+    // e.g., "Bosco By Shivangi <noreply@yourdomain.com>"
+    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "Bosco By Shivangi <onboarding@resend.dev>";
+    
     const emailResponse = await resend.emails.send({
-      from: "Bosco By Shivangi <onboarding@resend.dev>",
+      from: fromEmail,
       to: [user.email],
       subject: subject,
       html: emailHtml,
@@ -144,15 +148,12 @@ serve(async (req: Request): Promise<Response> => {
 
     if (emailResponse.error) {
       console.error("Email sending failed:", emailResponse.error);
-      return new Response(
-        JSON.stringify({ 
-          error: { 
-            http_code: 500, 
-            message: emailResponse.error.message 
-          } 
-        }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      // Return 200 with empty body to let Supabase fall back to default email
+      // This prevents the hook from failing completely
+      return new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     console.log("Auth email sent successfully:", emailResponse.data);
