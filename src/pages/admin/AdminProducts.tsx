@@ -38,7 +38,6 @@ interface Product {
   category: string;
   image_url: string | null;
   in_stock: boolean | null;
-  is_custom: boolean | null;
   weight_kg: number | null;
 }
 
@@ -49,7 +48,6 @@ interface ProductFormData {
   category: string;
   image_url: string;
   in_stock: boolean;
-  is_custom: boolean;
   weight_kg: string;
 }
 
@@ -60,7 +58,6 @@ const defaultFormData: ProductFormData = {
   category: 'tableware',
   image_url: '',
   in_stock: true,
-  is_custom: false,
   weight_kg: '0.5',
 };
 
@@ -91,7 +88,6 @@ const AdminProducts = () => {
         category: data.category,
         image_url: data.image_url || null,
         in_stock: data.in_stock,
-        is_custom: data.is_custom,
         weight_kg: parseFloat(data.weight_kg) || 0.5,
       });
       if (error) throw error;
@@ -117,7 +113,6 @@ const AdminProducts = () => {
           category: data.category,
           image_url: data.image_url || null,
           in_stock: data.in_stock,
-          is_custom: data.is_custom,
           weight_kg: parseFloat(data.weight_kg) || 0.5,
         })
         .eq('id', id);
@@ -162,7 +157,6 @@ const AdminProducts = () => {
       category: product.category,
       image_url: product.image_url || '',
       in_stock: product.in_stock ?? true,
-      is_custom: product.is_custom ?? false,
       weight_kg: product.weight_kg?.toString() || '0.5',
     });
     setIsDialogOpen(true);
@@ -214,7 +208,6 @@ const AdminProducts = () => {
             <TableHead>Category</TableHead>
             <TableHead>Price</TableHead>
             <TableHead>In Stock</TableHead>
-            <TableHead>Custom</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -225,7 +218,6 @@ const AdminProducts = () => {
               <TableCell className="capitalize">{product.category}</TableCell>
               <TableCell>₹{product.price.toLocaleString()}</TableCell>
               <TableCell>{product.in_stock ? 'Yes' : 'No'}</TableCell>
-              <TableCell>{product.is_custom ? 'Yes' : 'No'}</TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
                   <Button size="icon" variant="ghost" onClick={() => handleOpenEdit(product)}>
@@ -240,7 +232,7 @@ const AdminProducts = () => {
           ))}
           {products?.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                 No products found
               </TableCell>
             </TableRow>
@@ -321,23 +313,13 @@ const AdminProducts = () => {
                 placeholder="https://..."
               />
             </div>
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="in_stock"
-                  checked={formData.in_stock}
-                  onCheckedChange={(checked) => setFormData({ ...formData, in_stock: checked })}
-                />
-                <Label htmlFor="in_stock">In Stock</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="is_custom"
-                  checked={formData.is_custom}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_custom: checked })}
-                />
-                <Label htmlFor="is_custom">Custom Order</Label>
-              </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="in_stock"
+                checked={formData.in_stock}
+                onCheckedChange={(checked) => setFormData({ ...formData, in_stock: checked })}
+              />
+              <Label htmlFor="in_stock">In Stock</Label>
             </div>
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={handleCloseDialog}>
