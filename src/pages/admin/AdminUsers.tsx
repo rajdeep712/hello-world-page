@@ -16,8 +16,7 @@ interface Profile {
   user_id: string;
   full_name: string | null;
   phone: string | null;
-  avatar_url: string | null;
-  created_at: string;
+  created_at: string | null;
 }
 
 const AdminUsers = () => {
@@ -60,7 +59,7 @@ const AdminUsers = () => {
                 {profile.full_name || 'No name'}
               </TableCell>
               <TableCell>{profile.phone || '—'}</TableCell>
-              <TableCell>{format(new Date(profile.created_at), 'dd MMM yyyy')}</TableCell>
+              <TableCell>{profile.created_at ? format(new Date(profile.created_at), 'dd MMM yyyy') : '—'}</TableCell>
             </TableRow>
           ))}
           {profiles?.length === 0 && (
