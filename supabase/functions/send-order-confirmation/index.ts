@@ -9,6 +9,44 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Per-user email rate limiter
+const emailRateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const EMAIL_RATE_LIMIT = 5; // emails per window
+const EMAIL_RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+function checkEmailRateLimit(userId: string): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const record = emailRateLimitMap.get(userId);
+
+  if (!record || now > record.resetTime) {
+    emailRateLimitMap.set(userId, { count: 1, resetTime: now + EMAIL_RATE_WINDOW_MS });
+    return { allowed: true, remaining: EMAIL_RATE_LIMIT - 1 };
+  }
+
+  if (record.count >= EMAIL_RATE_LIMIT) {
+    return { allowed: false, remaining: 0 };
+  }
+
+  record.count++;
+  return { allowed: true, remaining: EMAIL_RATE_LIMIT - record.count };
+}
+
+// Per-order email tracking to prevent duplicate sends
+const sentEmails = new Map<string, number>();
+const EMAIL_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes cooldown per order
+
+function canSendEmailForOrder(orderId: string): boolean {
+  const now = Date.now();
+  const lastSent = sentEmails.get(orderId);
+  
+  if (lastSent && now - lastSent < EMAIL_COOLDOWN_MS) {
+    return false;
+  }
+  
+  sentEmails.set(orderId, now);
+  return true;
+}
+
 interface EmailRequest {
   order_id: string;
 }
@@ -46,6 +84,16 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
+    // Check email rate limit
+    const rateLimit = checkEmailRateLimit(user.id);
+    if (!rateLimit.allowed) {
+      console.warn(`Email rate limit exceeded for user ${user.id}`);
+      return new Response(
+        JSON.stringify({ error: 'Too many email requests. Please try again later.' }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const { order_id }: EmailRequest = await req.json();
     
     // Validate order_id format (UUID)
@@ -54,6 +102,15 @@ serve(async (req: Request): Promise<Response> => {
       return new Response(
         JSON.stringify({ error: 'Invalid order_id format' }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Check if email was recently sent for this order
+    if (!canSendEmailForOrder(order_id)) {
+      console.log(`Email recently sent for order ${order_id}, skipping duplicate`);
+      return new Response(
+        JSON.stringify({ success: true, message: 'Email already sent recently' }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
     

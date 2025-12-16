@@ -6,6 +6,29 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Simple in-memory rate limiter (per-function instance)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT = 10; // requests per window
+const RATE_WINDOW_MS = 60 * 1000; // 1 minute
+
+function checkRateLimit(userId: string): { allowed: boolean; remaining: number; resetIn: number } {
+  const now = Date.now();
+  const key = userId;
+  const record = rateLimitMap.get(key);
+
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(key, { count: 1, resetTime: now + RATE_WINDOW_MS });
+    return { allowed: true, remaining: RATE_LIMIT - 1, resetIn: RATE_WINDOW_MS };
+  }
+
+  if (record.count >= RATE_LIMIT) {
+    return { allowed: false, remaining: 0, resetIn: record.resetTime - now };
+  }
+
+  record.count++;
+  return { allowed: true, remaining: RATE_LIMIT - record.count, resetIn: record.resetTime - now };
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -39,7 +62,25 @@ serve(async (req) => {
       });
     }
 
-    console.log('Authenticated user:', user.id);
+    // Rate limiting check
+    const rateLimit = checkRateLimit(user.id);
+    if (!rateLimit.allowed) {
+      console.warn(`Rate limit exceeded for user ${user.id}`);
+      return new Response(JSON.stringify({ 
+        error: 'Too many requests. Please try again later.',
+        retryAfter: Math.ceil(rateLimit.resetIn / 1000)
+      }), {
+        status: 429,
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          'Retry-After': Math.ceil(rateLimit.resetIn / 1000).toString(),
+          'X-RateLimit-Remaining': '0',
+        },
+      });
+    }
+
+    console.log('Authenticated user:', user.id, '- Rate limit remaining:', rateLimit.remaining);
 
     const { amount, currency = 'INR', receipt, notes } = await req.json();
     
@@ -114,7 +155,11 @@ serve(async (req) => {
       currency: order.currency,
       keyId 
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { 
+        ...corsHeaders, 
+        'Content-Type': 'application/json',
+        'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+      },
     });
 
   } catch (error: unknown) {
