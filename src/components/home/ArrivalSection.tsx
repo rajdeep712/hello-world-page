@@ -1,6 +1,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import handsImage from "@/assets/hero/hands-pottery-wheel.jpg";
+import ScrollVideo from "@/components/ScrollVideo";
 
 const ArrivalSection = () => {
   const ref = useRef(null);
@@ -80,6 +81,19 @@ const ArrivalSection = () => {
         >
           Where ancient craft meets the philosophy of impermanence
         </motion.p>
+
+        {/* Micro video accent - bottom left */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.5, delay: 1.8 }}
+          className="absolute bottom-24 left-8 md:left-16 w-20 h-20 md:w-28 md:h-28 rounded-sm overflow-hidden opacity-60"
+        >
+          <ScrollVideo 
+            src="https://videos.pexels.com/video-files/3209211/3209211-uhd_2732_1440_25fps.mp4"
+            className="w-full h-full"
+          />
+        </motion.div>
 
         {/* Scroll indicator */}
         <motion.div

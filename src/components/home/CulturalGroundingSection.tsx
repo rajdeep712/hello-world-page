@@ -1,6 +1,7 @@
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { useRef } from "react";
 import toolsImage from "@/assets/studio/pottery-tools.jpg";
+import ScrollVideo from "@/components/ScrollVideo";
 
 const CulturalGroundingSection = () => {
   const ref = useRef(null);
@@ -77,6 +78,19 @@ const CulturalGroundingSection = () => {
               In Japanese aesthetics, <em>wabi-sabi</em> finds beauty in imperfection, 
               impermanence, and incompleteness—the philosophy that guides every piece we create.
             </motion.p>
+
+            {/* Micro video accent */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={isInView ? { opacity: 1 } : {}}
+              transition={{ duration: 0.8, delay: 1.6 }}
+              className="w-16 h-16 md:w-20 md:h-20 rounded-sm overflow-hidden opacity-70"
+            >
+              <ScrollVideo 
+                src="https://videos.pexels.com/video-files/3191584/3191584-uhd_2560_1440_25fps.mp4"
+                className="w-full h-full"
+              />
+            </motion.div>
           </div>
         </div>
 

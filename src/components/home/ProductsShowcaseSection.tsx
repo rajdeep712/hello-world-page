@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import ScrollVideo from "@/components/ScrollVideo";
 
 const ProductsShowcaseSection = () => {
   const ref = useRef(null);
@@ -39,7 +40,7 @@ const ProductsShowcaseSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 1 }}
-          className="mb-20 md:mb-28"
+          className="mb-20 md:mb-28 relative"
         >
           <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-6">
             The Collection
@@ -47,6 +48,19 @@ const ProductsShowcaseSection = () => {
           <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl text-foreground max-w-2xl">
             Vessels for <span className="text-primary">Living</span>
           </h2>
+          
+          {/* Micro video accent */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ duration: 1, delay: 0.5 }}
+            className="absolute right-0 md:right-16 top-0 w-14 h-14 md:w-20 md:h-20 rounded-sm overflow-hidden opacity-50"
+          >
+            <ScrollVideo 
+              src="https://videos.pexels.com/video-files/3209829/3209829-uhd_2732_1440_25fps.mp4"
+              className="w-full h-full"
+            />
+          </motion.div>
         </motion.div>
 
         {/* Editorial product layout - large images, small text, no pricing */}

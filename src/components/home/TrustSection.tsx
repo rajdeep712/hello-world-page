@@ -5,6 +5,7 @@ import { MapPin, Clock, ArrowRight, Star, Quote } from "lucide-react";
 import studioInterior from "@/assets/studio/studio-interior.jpg";
 import kilnImage from "@/assets/studio/kiln.jpg";
 import founderImage from "@/assets/founder-shivangi.jpg";
+import ScrollVideo from "@/components/ScrollVideo";
 
 const testimonials = [
   {
@@ -45,7 +46,7 @@ const TrustSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 1 }}
-            className="text-center mb-16 md:mb-20"
+            className="text-center mb-16 md:mb-20 relative"
           >
             <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-6">
               Voices
@@ -53,6 +54,19 @@ const TrustSection = () => {
             <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground">
               What They Say
             </h2>
+            
+            {/* Micro video accent */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={isInView ? { opacity: 1 } : {}}
+              transition={{ duration: 1, delay: 0.5 }}
+              className="absolute left-8 md:left-16 top-0 w-10 h-10 md:w-14 md:h-14 rounded-sm overflow-hidden opacity-50"
+            >
+              <ScrollVideo 
+                src="https://videos.pexels.com/video-files/3191584/3191584-uhd_2560_1440_25fps.mp4"
+                className="w-full h-full"
+              />
+            </motion.div>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8 md:gap-12">

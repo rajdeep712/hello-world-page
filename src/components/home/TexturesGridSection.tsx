@@ -4,6 +4,7 @@ import wabiSabiBowl from "@/assets/products/wabi-sabi-bowl.jpg";
 import kintsugiPlatter from "@/assets/products/kintsugi-platter.jpg";
 import rakuPlate from "@/assets/products/raku-dinner-plate.jpg";
 import teapot from "@/assets/products/tokoname-teapot.jpg";
+import ScrollVideo from "@/components/ScrollVideo";
 
 const textures = [
   {
@@ -48,7 +49,7 @@ const TexturesGridSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 1 }}
-          className="text-center mb-20 md:mb-28"
+          className="text-center mb-20 md:mb-28 relative"
         >
           <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-6">
             Sensory Experience
@@ -56,6 +57,19 @@ const TexturesGridSection = () => {
           <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl text-foreground">
             Textures & Materials
           </h2>
+          
+          {/* Micro video accent */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ duration: 1, delay: 0.5 }}
+            className="absolute -left-8 md:left-0 top-1/2 -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 rounded-sm overflow-hidden opacity-60"
+          >
+            <ScrollVideo 
+              src="https://videos.pexels.com/video-files/3196269/3196269-uhd_2560_1440_25fps.mp4"
+              className="w-full h-full"
+            />
+          </motion.div>
         </motion.div>
 
         {/* Grid - images slide in from bottom */}

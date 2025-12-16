@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import beginnerWorkshop from "@/assets/workshops/beginner-pottery.jpg";
 import coupleWorkshop from "@/assets/workshops/couple-pottery-date.jpg";
+import ScrollVideo from "@/components/ScrollVideo";
 
 const ExperiencesSection = () => {
   const ref = useRef(null);
@@ -44,7 +45,7 @@ const ExperiencesSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 1 }}
-          className="text-center mb-20 md:mb-28"
+          className="text-center mb-20 md:mb-28 relative"
         >
           <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-6">
             Human Connection
@@ -56,6 +57,19 @@ const ExperiencesSection = () => {
             Learn the ancient art of pottery in our intimate studio space. 
             Connect with clay, with others, with yourself.
           </p>
+          
+          {/* Micro video accent */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ duration: 1, delay: 0.5 }}
+            className="absolute -right-4 md:right-16 bottom-0 w-12 h-12 md:w-16 md:h-16 rounded-sm overflow-hidden opacity-60"
+          >
+            <ScrollVideo 
+              src="https://videos.pexels.com/video-files/3209211/3209211-uhd_2732_1440_25fps.mp4"
+              className="w-full h-full"
+            />
+          </motion.div>
         </motion.div>
 
         {/* Lifestyle photography layout */}
