@@ -66,72 +66,66 @@ serve(async (req: Request): Promise<Response> => {
         message = "Please use the code below to verify your request:";
     }
 
-    const emailHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${subject}</title>
-      </head>
-      <body style="font-family: 'Georgia', serif; background-color: #faf9f7; margin: 0; padding: 20px;">
-        <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-          
-          <!-- Header -->
-          <div style="background-color: #292524; padding: 40px 32px; text-align: center;">
-            <h1 style="font-family: 'Georgia', serif; color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 2px;">
-              Bosco By Shivangi
-            </h1>
-            <p style="color: #a8a29e; margin: 8px 0 0 0; font-size: 12px; letter-spacing: 3px; text-transform: uppercase;">
-              Handcrafted Pottery
-            </p>
-          </div>
-          
-          <!-- Content -->
-          <div style="padding: 40px 32px; text-align: center;">
-            <h2 style="color: #292524; margin: 0 0 16px 0; font-size: 24px; font-weight: normal;">
-              ${heading}
-            </h2>
-            
-            <p style="color: #78716c; margin: 0 0 32px 0; font-size: 16px; line-height: 1.6;">
-              Hi ${customerName},<br><br>
-              ${message}
-            </p>
-            
-            <!-- OTP Code Box -->
-            <div style="background: linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%); border-radius: 12px; padding: 24px; margin: 0 0 32px 0;">
-              <p style="color: #78716c; margin: 0 0 12px 0; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">
-                Your Verification Code
-              </p>
-              <div style="font-family: 'Courier New', monospace; font-size: 36px; font-weight: bold; color: #292524; letter-spacing: 8px;">
-                ${token}
-              </div>
-            </div>
-            
-            <p style="color: #a8a29e; margin: 0; font-size: 14px; line-height: 1.5;">
-              This code will expire in 1 hour.<br>
-              If you didn't request this, please ignore this email.
-            </p>
-          </div>
-          
-          <!-- Divider -->
-          <div style="padding: 0 32px;">
-            <div style="height: 1px; background: linear-gradient(to right, transparent, #d6d3d1, transparent);"></div>
-          </div>
-          
-          <!-- Footer -->
-          <div style="padding: 32px; text-align: center;">
-            <p style="color: #78716c; margin: 0 0 8px 0; font-size: 14px;">
-              Made with love in our pottery studio
-            </p>
-            <p style="color: #a8a29e; margin: 0; font-size: 12px;">
-              © ${new Date().getFullYear()} Bosco By Shivangi. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
+    const year = new Date().getFullYear();
+    
+    const emailHtml = [
+      '<!DOCTYPE html>',
+      '<html>',
+      '<head>',
+      '<meta charset="utf-8">',
+      '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
+      '</head>',
+      '<body style="margin:0;padding:0;background-color:#faf9f7;">',
+      '<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#faf9f7;padding:20px;">',
+      '<tr><td align="center">',
+      '<table width="500" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;">',
+      
+      // Header
+      '<tr><td style="background-color:#292524;padding:40px 32px;text-align:center;">',
+      '<h1 style="font-family:Georgia,serif;color:#ffffff;margin:0;font-size:28px;letter-spacing:2px;">',
+      'Bosco By Shivangi</h1>',
+      '<p style="color:#a8a29e;margin:8px 0 0 0;font-size:12px;letter-spacing:3px;text-transform:uppercase;">',
+      'Handcrafted Pottery</p>',
+      '</td></tr>',
+      
+      // Content
+      '<tr><td style="padding:40px 32px;text-align:center;">',
+      `<h2 style="color:#292524;margin:0 0 16px 0;font-size:24px;font-weight:normal;">${heading}</h2>`,
+      `<p style="color:#78716c;margin:0 0 32px 0;font-size:16px;line-height:1.6;">`,
+      `Hi ${customerName},<br><br>${message}</p>`,
+      
+      // OTP Box
+      '<table width="100%" cellpadding="0" cellspacing="0">',
+      '<tr><td style="background-color:#f5f5f4;border-radius:12px;padding:24px;text-align:center;">',
+      '<p style="color:#78716c;margin:0 0 12px 0;font-size:12px;letter-spacing:2px;text-transform:uppercase;">',
+      'Your Verification Code</p>',
+      `<div style="font-family:Courier New,monospace;font-size:36px;font-weight:bold;color:#292524;letter-spacing:8px;">`,
+      `${token}</div>`,
+      '</td></tr>',
+      '</table>',
+      
+      '<p style="color:#a8a29e;margin:32px 0 0 0;font-size:14px;line-height:1.5;">',
+      'This code will expire in 1 hour.<br>',
+      'If you did not request this, please ignore this email.</p>',
+      '</td></tr>',
+      
+      // Divider
+      '<tr><td style="padding:0 32px;">',
+      '<div style="height:1px;background-color:#d6d3d1;"></div>',
+      '</td></tr>',
+      
+      // Footer
+      '<tr><td style="padding:32px;text-align:center;">',
+      '<p style="color:#78716c;margin:0 0 8px 0;font-size:14px;">Made with love in our pottery studio</p>',
+      `<p style="color:#a8a29e;margin:0;font-size:12px;">&copy; ${year} Bosco By Shivangi. All rights reserved.</p>`,
+      '</td></tr>',
+      
+      '</table>',
+      '</td></tr>',
+      '</table>',
+      '</body>',
+      '</html>'
+    ].join('\n');
 
     const gmailUser = Deno.env.get("GMAIL_USER");
     const gmailAppPassword = Deno.env.get("GMAIL_APP_PASSWORD");
