@@ -61,11 +61,11 @@ const CraftStepsSection = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="snap-section bg-charcoal relative">
-      {/* Section header */}
+    <section ref={sectionRef} className="bg-charcoal relative">
+      {/* Section header - also snaps */}
       <div 
         ref={headerRef}
-        className="h-[60vh] flex items-center justify-center sticky top-0 z-0"
+        className="snap-section h-screen flex items-center justify-center sticky top-0 z-0"
       >
         <div className="text-center px-8">
           <p className="header-text text-[10px] tracking-[0.4em] uppercase text-cream/40 mb-8">
@@ -77,7 +77,7 @@ const CraftStepsSection = () => {
         </div>
       </div>
 
-      {/* Steps */}
+      {/* Steps - each one snaps */}
       {steps.map((step, index) => (
         <CraftStep key={step.title} step={step} index={index} isLast={index === steps.length - 1} />
       ))}
@@ -179,8 +179,8 @@ const CraftStep = ({
   }, [isLast]);
 
   return (
-    <div ref={stepRef} className="relative">
-      <div className="relative h-screen overflow-hidden">
+    <div ref={stepRef} className="snap-section relative h-screen">
+      <div className="relative h-full overflow-hidden">
         <img
           ref={imageRef}
           src={step.image}
