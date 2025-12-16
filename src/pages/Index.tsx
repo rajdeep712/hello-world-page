@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Navigation from "@/components/Navigation";
 import ArrivalSection from "@/components/home/ArrivalSection";
 import CulturalGroundingSection from "@/components/home/CulturalGroundingSection";
@@ -11,6 +13,8 @@ import TrustSection from "@/components/home/TrustSection";
 import Footer from "@/components/Footer";
 import { Helmet } from "react-helmet-async";
 
+gsap.registerPlugin(ScrollTrigger);
+
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
 
@@ -19,6 +23,20 @@ const Index = () => {
     const timer = setTimeout(() => setIsLoading(false), 1200);
     return () => clearTimeout(timer);
   }, []);
+
+  // Initialize GSAP ScrollTrigger for snap sections
+  useEffect(() => {
+    if (isLoading) return;
+
+    // Small delay to ensure DOM is ready
+    const initTimer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 100);
+
+    return () => {
+      clearTimeout(initTimer);
+    };
+  }, [isLoading]);
 
   return (
     <>

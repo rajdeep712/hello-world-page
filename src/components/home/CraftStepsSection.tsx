@@ -1,25 +1,28 @@
-import { motion, useScroll, useTransform, useInView } from "framer-motion";
-import { useRef } from "react";
-import handsImage from "@/assets/hero/hands-pottery-wheel.jpg";
+import { useRef, useEffect } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import potteryHandsImage from "@/assets/hero/pottery-hands-clay.jpg";
 import kilnImage from "@/assets/studio/kiln.jpg";
-import toolsImage from "@/assets/studio/pottery-tools.jpg";
-import studioImage from "@/assets/studio/studio-interior.jpg";
+import glazingImage from "@/assets/studio/pottery-glazing.jpg";
+import dryingImage from "@/assets/studio/pottery-drying.jpg";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const steps = [
   {
     title: "Shaping",
     description: "Raw clay finds form on the wheel, guided by patient hands.",
-    image: handsImage,
+    image: potteryHandsImage,
   },
   {
     title: "Drying",
     description: "Time slows as moisture leaves, revealing true character.",
-    image: toolsImage,
+    image: dryingImage,
   },
   {
     title: "Glazing",
     description: "Each surface receives its unique mineral embrace.",
-    image: studioImage,
+    image: glazingImage,
   },
   {
     title: "Firing",
@@ -29,30 +32,52 @@ const steps = [
 ];
 
 const CraftStepsSection = () => {
-  const containerRef = useRef(null);
-  const headerRef = useRef(null);
-  const isHeaderInView = useInView(headerRef, { once: true, margin: "-30%" });
+  const sectionRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!sectionRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // Header animation
+      gsap.fromTo(headerRef.current?.querySelectorAll('.header-text') || [],
+        { y: 40, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1.2,
+          stagger: 0.2,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: headerRef.current,
+            start: "top 70%",
+            toggleActions: "play none none reverse"
+          }
+        }
+      );
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <section ref={containerRef} className="bg-charcoal relative">
-      {/* Section header - cinematic fade in */}
-      <div ref={headerRef} className="h-[60vh] flex items-center justify-center sticky top-0 z-0">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isHeaderInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 1.5, ease: [0.25, 0.1, 0.25, 1] }}
-          className="text-center px-8"
-        >
-          <p className="text-[10px] tracking-[0.4em] uppercase text-cream/40 mb-8">
+    <section ref={sectionRef} className="snap-section bg-charcoal relative">
+      {/* Section header */}
+      <div 
+        ref={headerRef}
+        className="h-[60vh] flex items-center justify-center sticky top-0 z-0"
+      >
+        <div className="text-center px-8">
+          <p className="header-text text-[10px] tracking-[0.4em] uppercase text-cream/40 mb-8">
             The Process
           </p>
-          <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-cream font-light">
+          <h2 className="header-text font-serif text-3xl md:text-4xl lg:text-5xl text-cream font-light">
             From Earth to Art
           </h2>
-        </motion.div>
+        </div>
       </div>
 
-      {/* Steps - slow reveal with parallax */}
+      {/* Steps */}
       {steps.map((step, index) => (
         <CraftStep key={step.title} step={step} index={index} isLast={index === steps.length - 1} />
       ))}
@@ -69,59 +94,114 @@ const CraftStep = ({
   index: number;
   isLast: boolean;
 }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: false, margin: "-40%" });
-  
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"]
-  });
+  const stepRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  const imageOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.2, 1, 1, isLast ? 1 : 0.4]);
-  const imageY = useTransform(scrollYProgress, [0, 1], ["10%", "-10%"]);
+  useEffect(() => {
+    if (!stepRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // Image parallax
+      gsap.to(imageRef.current, {
+        yPercent: -20,
+        ease: "none",
+        scrollTrigger: {
+          trigger: stepRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1.5
+        }
+      });
+
+      // Image opacity animation
+      gsap.fromTo(stepRef.current,
+        { opacity: 0.3 },
+        {
+          opacity: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: stepRef.current,
+            start: "top 80%",
+            end: "top 30%",
+            scrub: true
+          }
+        }
+      );
+
+      // Fade out for non-last items
+      if (!isLast) {
+        gsap.to(stepRef.current, {
+          opacity: 0.4,
+          ease: "none",
+          scrollTrigger: {
+            trigger: stepRef.current,
+            start: "bottom 70%",
+            end: "bottom 30%",
+            scrub: true
+          }
+        });
+      }
+
+      // Content reveal
+      gsap.fromTo(contentRef.current?.querySelectorAll('.step-content') || [],
+        { y: 50, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          stagger: 0.15,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: stepRef.current,
+            start: "top 50%",
+            toggleActions: "play none none reverse"
+          }
+        }
+      );
+
+    }, stepRef);
+
+    return () => ctx.revert();
+  }, [isLast]);
 
   return (
-    <div ref={ref} className="relative">
-      <motion.div
-        className="relative h-screen"
-        style={{ opacity: imageOpacity }}
-      >
-        <motion.img
+    <div ref={stepRef} className="relative">
+      <div className="relative h-screen overflow-hidden">
+        <img
+          ref={imageRef}
           src={step.image}
           alt={step.title}
-          className="w-full h-full object-cover"
-          style={{ y: imageY }}
+          className="w-full h-[120%] object-cover will-change-transform"
         />
         {/* Cinematic gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/30 to-charcoal/10" />
         
-        {/* Content - slow fade */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
-          transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
+        {/* Content overlay */}
+        <div
+          ref={contentRef}
           className="absolute inset-0 flex items-end pb-28 md:pb-36"
         >
           <div className="container px-8 md:px-16 lg:px-24">
             <div className="max-w-lg">
-              {/* Step number - very subtle */}
-              <span className="font-serif text-6xl md:text-7xl text-cream/[0.06] block mb-6">
+              {/* Step number */}
+              <span className="step-content font-serif text-6xl md:text-7xl text-cream/[0.08] block mb-6">
                 {String(index + 1).padStart(2, '0')}
               </span>
               
-              {/* Title - caption style */}
-              <h3 className="font-serif text-2xl md:text-3xl text-cream font-light mb-4">
+              {/* Title */}
+              <h3 className="step-content font-serif text-2xl md:text-3xl text-cream font-light mb-4">
                 {step.title}
               </h3>
               
-              {/* Description - small, understated */}
-              <p className="font-sans text-cream/50 text-sm md:text-base max-w-sm leading-relaxed">
+              {/* Description */}
+              <p className="step-content font-sans text-cream/50 text-sm md:text-base max-w-sm leading-relaxed">
                 {step.description}
               </p>
             </div>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 };
