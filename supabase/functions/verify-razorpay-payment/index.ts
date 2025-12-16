@@ -13,6 +13,36 @@ const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
 // Razorpay ID format validation (typically starts with order_, pay_, sig_)
 const razorpayIdRegex = /^[a-zA-Z0-9_]+$/;
 
+// Per-order verification attempt limiter
+const verificationAttempts = new Map<string, { count: number; lastAttempt: number }>();
+const MAX_VERIFICATION_ATTEMPTS = 5;
+const VERIFICATION_WINDOW_MS = 30 * 60 * 1000; // 30 minutes
+
+function checkVerificationLimit(orderId: string): { allowed: boolean; attempts: number } {
+  const now = Date.now();
+  const record = verificationAttempts.get(orderId);
+
+  // Clean old records
+  if (record && now - record.lastAttempt > VERIFICATION_WINDOW_MS) {
+    verificationAttempts.delete(orderId);
+    verificationAttempts.set(orderId, { count: 1, lastAttempt: now });
+    return { allowed: true, attempts: 1 };
+  }
+
+  if (!record) {
+    verificationAttempts.set(orderId, { count: 1, lastAttempt: now });
+    return { allowed: true, attempts: 1 };
+  }
+
+  if (record.count >= MAX_VERIFICATION_ATTEMPTS) {
+    return { allowed: false, attempts: record.count };
+  }
+
+  record.count++;
+  record.lastAttempt = now;
+  return { allowed: true, attempts: record.count };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -59,6 +89,21 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Check verification attempt limit for this order
+    const attemptCheck = checkVerificationLimit(order_id);
+    if (!attemptCheck.allowed) {
+      console.warn(`Verification attempt limit exceeded for order ${order_id} (${attemptCheck.attempts} attempts)`);
+      return new Response(JSON.stringify({ 
+        error: 'Too many verification attempts for this order. Please contact support.',
+        verified: false 
+      }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`Verification attempt ${attemptCheck.attempts}/${MAX_VERIFICATION_ATTEMPTS} for order ${order_id}`);
 
     // Validate Razorpay IDs format
     if (!razorpay_order_id || !razorpayIdRegex.test(razorpay_order_id)) {
@@ -161,6 +206,9 @@ serve(async (req) => {
     }
 
     console.log('Order updated successfully:', order_id);
+
+    // Clear verification attempts on success
+    verificationAttempts.delete(order_id);
 
     return new Response(JSON.stringify({ success: true, verified: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
