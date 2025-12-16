@@ -102,15 +102,16 @@ const CraftStep = ({
     if (!stepRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Snap trigger - when 30% of the image is visible, snap to full viewport
+      // Snap trigger - when 30% of the image is visible, snap quickly
       ScrollTrigger.create({
         trigger: stepRef.current,
-        start: "top 70%", // 30% visible
+        start: "top 70%",
         end: "top top",
         snap: {
           snapTo: 1,
-          duration: { min: 0.4, max: 0.8 },
-          ease: "power2.inOut"
+          duration: { min: 0.2, max: 0.4 },
+          ease: "power1.out",
+          inertia: false
         }
       });
 
