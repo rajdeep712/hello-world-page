@@ -115,10 +115,25 @@ const CraftStep = ({
         }
       });
 
+      // Image reveal animation - scale and fade when in view
+      gsap.fromTo(imageRef.current,
+        { scale: 1.15, opacity: 0.6 },
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 1.2,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: stepRef.current,
+            start: "top 60%",
+            toggleActions: "play none none reverse"
+          }
+        }
+      );
+
       // Image parallax - slower, more dramatic
       gsap.to(imageRef.current, {
         yPercent: -15,
-        scale: 1.03,
         ease: "none",
         scrollTrigger: {
           trigger: stepRef.current,
@@ -140,17 +155,52 @@ const CraftStep = ({
         }
       });
 
-      // Image opacity animation
-      gsap.fromTo(stepRef.current,
-        { opacity: 0.3 },
+      // Step number animation - slide up and fade
+      gsap.fromTo(contentRef.current?.querySelector('.step-number'),
+        { y: 60, opacity: 0 },
         {
+          y: 0,
           opacity: 1,
-          ease: "none",
+          duration: 1,
+          ease: "power3.out",
           scrollTrigger: {
             trigger: stepRef.current,
-            start: "top 80%",
-            end: "top 30%",
-            scrub: true
+            start: "top 50%",
+            toggleActions: "play none none reverse"
+          }
+        }
+      );
+
+      // Title animation - slide up with delay
+      gsap.fromTo(contentRef.current?.querySelector('.step-title'),
+        { y: 40, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          delay: 0.15,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: stepRef.current,
+            start: "top 50%",
+            toggleActions: "play none none reverse"
+          }
+        }
+      );
+
+      // Description animation - slide up with longer delay
+      gsap.fromTo(contentRef.current?.querySelector('.step-description'),
+        { y: 30, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          delay: 0.3,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: stepRef.current,
+            start: "top 50%",
+            toggleActions: "play none none reverse"
           }
         }
       );
@@ -168,23 +218,6 @@ const CraftStep = ({
           }
         });
       }
-
-      // Content reveal
-      gsap.fromTo(contentRef.current?.querySelectorAll('.step-content') || [],
-        { y: 50, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1,
-          stagger: 0.15,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: stepRef.current,
-            start: "top 50%",
-            toggleActions: "play none none reverse"
-          }
-        }
-      );
 
     }, stepRef);
 
@@ -211,17 +244,17 @@ const CraftStep = ({
           <div className="container px-8 md:px-16 lg:px-24">
             <div className="max-w-lg">
               {/* Step number */}
-              <span className="step-content font-serif text-6xl md:text-7xl text-cream/[0.08] block mb-6">
+              <span className="step-number font-serif text-6xl md:text-7xl text-cream/[0.08] block mb-6">
                 {String(index + 1).padStart(2, '0')}
               </span>
               
               {/* Title */}
-              <h3 className="step-content font-serif text-2xl md:text-3xl text-cream font-light mb-4">
+              <h3 className="step-title font-serif text-2xl md:text-3xl text-cream font-light mb-4">
                 {step.title}
               </h3>
               
               {/* Description */}
-              <p className="step-content font-sans text-cream/50 text-sm md:text-base max-w-sm leading-relaxed">
+              <p className="step-description font-sans text-cream/50 text-sm md:text-base max-w-sm leading-relaxed">
                 {step.description}
               </p>
             </div>
