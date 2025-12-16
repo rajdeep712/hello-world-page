@@ -1,32 +1,79 @@
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef, useState } from "react";
-import handsImage from "@/assets/hero/hands-pottery-wheel.jpg";
+import { useRef, useState, useEffect } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import handsImage from "@/assets/hero/pottery-hands-clay.jpg";
 
-// Local pottery video file
+gsap.registerPlugin(ScrollTrigger);
+
 const HERO_VIDEO_URL = "/video/pottery-hero.mp4";
 
 const ArrivalSection = () => {
-  const ref = useRef(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end start"]
-  });
 
-  const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
-  const textOpacity = useTransform(scrollYProgress, [0, 0.4], [1, 0]);
-  const textY = useTransform(scrollYProgress, [0, 0.4], ["0%", "15%"]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.05]);
+  useEffect(() => {
+    if (!sectionRef.current || !contentRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // Parallax effect on background
+      gsap.to(".hero-bg", {
+        yPercent: 30,
+        scale: 1.1,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top top",
+          end: "bottom top",
+          scrub: 1
+        }
+      });
+
+      // Fade out content on scroll
+      gsap.to(contentRef.current, {
+        opacity: 0,
+        y: -50,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top top",
+          end: "40% top",
+          scrub: 1
+        }
+      });
+
+      // Initial reveal animations
+      const tl = gsap.timeline({ delay: 1.5 });
+      
+      tl.fromTo(".hero-tagline", 
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }
+      )
+      .fromTo(".hero-title",
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 1.4, ease: "power3.out" },
+        "-=0.8"
+      )
+      .fromTo(".hero-scroll",
+        { opacity: 0 },
+        { opacity: 1, duration: 1, ease: "power2.out" },
+        "-=0.5"
+      );
+
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <section ref={ref} className="relative h-screen overflow-hidden">
-      {/* Full-screen video with subtle parallax */}
-      <motion.div 
-        className="absolute inset-0"
-        style={{ y: backgroundY, scale }}
-      >
-        {/* Fallback image - shows while video loads */}
+    <section 
+      ref={sectionRef} 
+      className="snap-section relative h-screen overflow-hidden"
+    >
+      {/* Full-screen video with parallax */}
+      <div className="hero-bg absolute inset-0 will-change-transform">
+        {/* Fallback image */}
         <img 
           src={handsImage} 
           alt="Hands shaping clay on pottery wheel" 
@@ -35,8 +82,9 @@ const ArrivalSection = () => {
           }`}
         />
         
-        {/* Video background - silent, looping, cinematic */}
+        {/* Video background */}
         <video
+          ref={videoRef}
           autoPlay
           muted
           loop
@@ -49,11 +97,11 @@ const ArrivalSection = () => {
           <source src={HERO_VIDEO_URL} type="video/mp4" />
         </video>
         
-        {/* Natural light gradient - softer, more cinematic */}
-        <div className="absolute inset-0 bg-gradient-to-b from-charcoal/30 via-transparent to-charcoal/50" />
-      </motion.div>
+        {/* Cinematic gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-charcoal/40 via-transparent to-charcoal/60" />
+      </div>
 
-      {/* Subtle grain overlay */}
+      {/* Grain texture */}
       <div 
         className="absolute inset-0 pointer-events-none opacity-[0.04] mix-blend-overlay"
         style={{
@@ -61,45 +109,24 @@ const ArrivalSection = () => {
         }}
       />
 
-      {/* Cinematic content - minimal text, generous whitespace */}
-      <motion.div 
+      {/* Content */}
+      <div 
+        ref={contentRef}
         className="absolute inset-0 flex flex-col items-center justify-end pb-32 md:pb-40 text-center px-8"
-        style={{ opacity: textOpacity, y: textY }}
       >
-        {/* Caption-style tagline */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 2, delay: 1 }}
-          className="text-[10px] md:text-xs tracking-[0.5em] uppercase text-cream/50 mb-8"
-        >
+        <p className="hero-tagline text-[10px] md:text-xs tracking-[0.5em] uppercase text-cream/50 mb-8 opacity-0">
           Handcrafted in Surat, India
-        </motion.p>
+        </p>
 
-        {/* Main Title - elegant, not bold */}
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.8, delay: 1.3, ease: [0.25, 0.1, 0.25, 1] }}
-          className="font-serif text-4xl md:text-6xl lg:text-7xl text-cream font-light leading-[1.1] tracking-tight"
-        >
+        <h1 className="hero-title font-serif text-4xl md:text-6xl lg:text-7xl text-cream font-light leading-[1.1] tracking-tight opacity-0">
           Poetry in Clay
-        </motion.h1>
+        </h1>
 
-        {/* Scroll indicator - very subtle */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.5, delay: 3 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 6, 0] }}
-            transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-            className="w-px h-12 bg-gradient-to-b from-cream/30 to-transparent"
-          />
-        </motion.div>
-      </motion.div>
+        {/* Scroll indicator */}
+        <div className="hero-scroll absolute bottom-8 left-1/2 -translate-x-1/2 opacity-0">
+          <div className="w-px h-12 bg-gradient-to-b from-cream/30 to-transparent animate-pulse" />
+        </div>
+      </div>
     </section>
   );
 };

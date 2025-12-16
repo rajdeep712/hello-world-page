@@ -1,9 +1,12 @@
-import { motion, useInView, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import wabiSabiBowl from "@/assets/products/wabi-sabi-bowl.jpg";
 import kintsugiPlatter from "@/assets/products/kintsugi-platter.jpg";
 import rakuPlate from "@/assets/products/raku-dinner-plate.jpg";
 import teapot from "@/assets/products/tokoname-teapot.jpg";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const textures = [
   {
@@ -29,11 +32,62 @@ const textures = [
 ];
 
 const TexturesGridSection = () => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-20%" });
+  const sectionRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!sectionRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // Header animation
+      gsap.fromTo(headerRef.current?.querySelectorAll('.header-text') || [],
+        { y: 40, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1.2,
+          stagger: 0.15,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 70%",
+            toggleActions: "play none none reverse"
+          }
+        }
+      );
+
+      // Grid cards stagger animation
+      const cards = gridRef.current?.querySelectorAll('.texture-card');
+      if (cards) {
+        gsap.fromTo(cards,
+          { y: 80, opacity: 0, scale: 0.95 },
+          {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 1,
+            stagger: 0.15,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: gridRef.current,
+              start: "top 75%",
+              toggleActions: "play none none reverse"
+            }
+          }
+        );
+      }
+
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <section ref={ref} className="py-40 md:py-56 bg-paper relative overflow-hidden">
+    <section 
+      ref={sectionRef} 
+      className="snap-section py-40 md:py-56 bg-paper relative overflow-hidden"
+    >
       {/* Grain overlay */}
       <div 
         className="absolute inset-0 pointer-events-none opacity-[0.02] mix-blend-overlay"
@@ -43,30 +97,20 @@ const TexturesGridSection = () => {
       />
 
       <div className="container px-8 md:px-12 lg:px-24">
-        {/* Section header - cinematic */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 1.5, ease: [0.25, 0.1, 0.25, 1] }}
-          className="text-center mb-24 md:mb-32"
-        >
-          <p className="text-[10px] tracking-[0.4em] uppercase text-muted-foreground/60 mb-8">
+        {/* Section header */}
+        <div ref={headerRef} className="text-center mb-24 md:mb-32">
+          <p className="header-text text-[10px] tracking-[0.4em] uppercase text-muted-foreground/60 mb-8">
             Sensory Experience
           </p>
-          <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground font-light">
+          <h2 className="header-text font-serif text-3xl md:text-4xl lg:text-5xl text-foreground font-light">
             Textures & Materials
           </h2>
-        </motion.div>
+        </div>
 
-        {/* Grid - slow staggered reveal */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+        {/* Grid */}
+        <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
           {textures.map((texture, index) => (
-            <TextureCard 
-              key={texture.name} 
-              texture={texture} 
-              index={index}
-              isInView={isInView}
-            />
+            <TextureCard key={texture.name} texture={texture} index={index} />
           ))}
         </div>
       </div>
@@ -76,39 +120,63 @@ const TexturesGridSection = () => {
 
 const TextureCard = ({ 
   texture, 
-  index,
-  isInView
+  index
 }: { 
   texture: typeof textures[0]; 
   index: number;
-  isInView: boolean;
 }) => {
-  const cardRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: cardRef,
-    offset: ["start end", "end start"]
-  });
+  const cardRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
-  const imageY = useTransform(scrollYProgress, [0, 1], ["5%", "-5%"]);
+  useEffect(() => {
+    if (!cardRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // Image parallax within card
+      gsap.to(imageRef.current, {
+        yPercent: -10,
+        ease: "none",
+        scrollTrigger: {
+          trigger: cardRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1.5
+        }
+      });
+
+      // Hover animation
+      const card = cardRef.current;
+      card?.addEventListener('mouseenter', () => {
+        gsap.to(imageRef.current, {
+          scale: 1.05,
+          duration: 0.6,
+          ease: "power2.out"
+        });
+      });
+      
+      card?.addEventListener('mouseleave', () => {
+        gsap.to(imageRef.current, {
+          scale: 1,
+          duration: 0.6,
+          ease: "power2.out"
+        });
+      });
+    }, cardRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <motion.div
+    <div
       ref={cardRef}
-      initial={{ opacity: 0, y: 60 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ 
-        duration: 1.2, 
-        delay: index * 0.2,
-        ease: [0.25, 0.1, 0.25, 1]
-      }}
-      className="relative aspect-[4/3] overflow-hidden group"
+      className="texture-card relative aspect-[4/3] overflow-hidden group cursor-pointer"
     >
-      {/* Image with subtle parallax */}
-      <motion.img
+      {/* Image with parallax */}
+      <img
+        ref={imageRef}
         src={texture.image}
         alt={texture.name}
-        className="w-full h-[110%] object-cover transition-all duration-1000 ease-out"
-        style={{ y: imageY }}
+        className="w-full h-[120%] object-cover will-change-transform"
       />
       
       {/* Soft gradient overlay */}
@@ -123,7 +191,7 @@ const TextureCard = ({
           {texture.description}
         </p>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

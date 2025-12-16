@@ -144,6 +144,18 @@
     scroll-behavior: smooth;
   }
 
+  /* Scroll snap container for cinematic sections */
+  .snap-container {
+    scroll-snap-type: y mandatory;
+    overflow-y: scroll;
+    height: 100vh;
+  }
+
+  .snap-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "kern" 1, "liga" 1;
