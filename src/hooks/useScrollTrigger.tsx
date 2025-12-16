@@ -11,17 +11,16 @@ export const useScrollTrigger = () => {
     const sections = gsap.utils.toArray<HTMLElement>('.snap-section');
     
     if (sections.length > 0) {
-      sections.forEach((section, i) => {
-        ScrollTrigger.create({
-          trigger: section,
-          start: 'top top',
-          end: 'bottom top',
-          snap: {
-            snapTo: 1,
-            duration: { min: 0.3, max: 0.8 },
-            ease: 'power2.inOut'
-          }
-        });
+      ScrollTrigger.create({
+        snap: {
+          snapTo: 1 / (sections.length - 1),
+          duration: { min: 0.6, max: 1.4 },
+          delay: 0.1,
+          ease: 'power3.inOut',
+          inertia: false
+        },
+        start: 'top top',
+        end: 'max'
       });
     }
 
