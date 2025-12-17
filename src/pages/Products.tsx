@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
@@ -168,73 +169,81 @@ const Products = () => {
                       <div className="absolute -inset-2 bg-gradient-to-r from-primary/20 via-amber/20 to-primary/20 rounded-2xl opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none" />
                       
                       <div className="relative bg-card rounded-xl overflow-hidden border border-border/50 group-hover:border-primary/30 transition-all duration-500 group-hover:shadow-warm">
-                        {/* Image container */}
-                        <div className="aspect-square bg-gradient-to-br from-secondary via-muted to-card relative overflow-hidden">
-                          {productImages[product.name] || product.image_url ? (
-                            <motion.img 
-                              src={productImages[product.name] || product.image_url || ''} 
-                              alt={product.name}
-                              className="w-full h-full object-cover"
-                              whileHover={{ scale: 1.08 }}
-                              transition={{ duration: 0.6, ease: "easeOut" }}
-                            />
-                          ) : (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-24 h-28 bg-gradient-to-b from-terracotta/40 to-clay/40 rounded-full transform scale-x-75" />
-                            </div>
-                          )}
-                          
-                          {/* Overlay gradient */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
-                          
-                          {/* Quick add button overlay */}
-                          <motion.div 
-                            className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out"
-                          >
-                            <Button 
-                              size="sm" 
-                              variant="terracotta"
-                              className="w-full backdrop-blur-sm"
-                              onClick={() => handleAddToCart(product.id)}
-                              disabled={addingToCart === product.id}
-                            >
-                              {addingToCart === product.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                              ) : (
-                                <ShoppingBag className="h-4 w-4 mr-2" />
-                              )}
-                              Add to Cart
-                            </Button>
-                          </motion.div>
-                        </div>
-                        
-                        {/* Content */}
-                        <div className="p-4 space-y-2">
-                          <motion.span 
-                            className="inline-block font-sans text-xs text-primary/80 uppercase tracking-wider px-2 py-1 bg-primary/10 rounded-full"
-                            whileHover={{ scale: 1.05 }}
-                          >
-                            {product.category}
-                          </motion.span>
-                          <h3 className="font-serif text-lg text-foreground group-hover:text-primary transition-colors duration-300">
-                            {product.name}
-                          </h3>
-                          <p className="font-sans text-sm text-muted-foreground line-clamp-2">
-                            {product.description}
-                          </p>
-                          <div className="flex items-center justify-between pt-2">
-                            <p className="font-sans text-xl text-primary font-medium">
-                              ₹{Number(product.price).toLocaleString()}
-                            </p>
-                            <motion.div 
-                              className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors"
-                              whileHover={{ scale: 1.1, rotate: 15 }}
-                              whileTap={{ scale: 0.95 }}
-                            >
-                              <ShoppingBag className="h-4 w-4 text-primary" />
-                            </motion.div>
+                        {/* Image container - clickable */}
+                        <Link to={`/products/${product.id}`}>
+                          <div className="aspect-square bg-gradient-to-br from-secondary via-muted to-card relative overflow-hidden cursor-pointer">
+                            {productImages[product.name] || product.image_url ? (
+                              <motion.img 
+                                src={productImages[product.name] || product.image_url || ''} 
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                                whileHover={{ scale: 1.08 }}
+                                transition={{ duration: 0.6, ease: "easeOut" }}
+                              />
+                            ) : (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-24 h-28 bg-gradient-to-b from-terracotta/40 to-clay/40 rounded-full transform scale-x-75" />
+                              </div>
+                            )}
+                            
+                            {/* Overlay gradient */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
                           </div>
-                        </div>
+                        </Link>
+                        
+                        {/* Quick add button overlay */}
+                        <motion.div 
+                          className="absolute bottom-[calc(100%-var(--image-height,0px)+1rem)] inset-x-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-10"
+                          style={{ bottom: "auto", top: "calc(100% - 140px)" }}
+                        >
+                          <Button 
+                            size="sm" 
+                            variant="terracotta"
+                            className="w-full backdrop-blur-sm"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleAddToCart(product.id);
+                            }}
+                            disabled={addingToCart === product.id}
+                          >
+                            {addingToCart === product.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
+                              <ShoppingBag className="h-4 w-4 mr-2" />
+                            )}
+                            Add to Cart
+                          </Button>
+                        </motion.div>
+                        
+                        {/* Content - clickable */}
+                        <Link to={`/products/${product.id}`}>
+                          <div className="p-4 space-y-2 cursor-pointer">
+                            <motion.span 
+                              className="inline-block font-sans text-xs text-primary/80 uppercase tracking-wider px-2 py-1 bg-primary/10 rounded-full"
+                              whileHover={{ scale: 1.05 }}
+                            >
+                              {product.category}
+                            </motion.span>
+                            <h3 className="font-serif text-lg text-foreground group-hover:text-primary transition-colors duration-300">
+                              {product.name}
+                            </h3>
+                            <p className="font-sans text-sm text-muted-foreground line-clamp-2">
+                              {product.description}
+                            </p>
+                            <div className="flex items-center justify-between pt-2">
+                              <p className="font-sans text-xl text-primary font-medium">
+                                ₹{Number(product.price).toLocaleString()}
+                              </p>
+                              <motion.div 
+                                className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors"
+                                whileHover={{ scale: 1.1, rotate: 15 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                <ShoppingBag className="h-4 w-4 text-primary" />
+                              </motion.div>
+                            </div>
+                          </div>
+                        </Link>
                       </div>
                     </motion.article>
                   ))}
