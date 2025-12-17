@@ -76,6 +76,38 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
   const [editRating, setEditRating] = useState(5);
   const [editComment, setEditComment] = useState("");
 
+  // Check if user has purchased and received this product
+  const { data: hasPurchased = false } = useQuery({
+    queryKey: ['product-purchase-check', productId, user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      
+      // Check if user has a delivered order containing this product
+      const { data, error } = await supabase
+        .from('order_items')
+        .select(`
+          id,
+          orders!inner (
+            id,
+            user_id,
+            order_status
+          )
+        `)
+        .eq('product_id', productId)
+        .eq('orders.user_id', user.id)
+        .eq('orders.order_status', 'delivered')
+        .limit(1);
+
+      if (error) {
+        console.error('Error checking purchase:', error);
+        return false;
+      }
+      
+      return data && data.length > 0;
+    },
+    enabled: !!user,
+  });
+
   // Fetch reviews with user profiles
   const { data: reviews = [], isLoading } = useQuery({
     queryKey: ['product-reviews', productId],
@@ -113,6 +145,9 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
 
   // Check if user has already reviewed
   const userReview = reviews.find(r => r.user_id === user?.id);
+  
+  // User can review if: logged in, has purchased & received, hasn't reviewed yet
+  const canReview = user && hasPurchased && !userReview;
 
   // Calculate average rating
   const averageRating = reviews.length > 0
@@ -224,8 +259,8 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
         </div>
       </div>
 
-      {/* Review Form */}
-      {user && !userReview && (
+      {/* Review Form - Only show if user has purchased and product was delivered */}
+      {canReview && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -277,6 +312,19 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
           <Button variant="outline" asChild>
             <a href="/auth">Sign In</a>
           </Button>
+        </motion.div>
+      )}
+
+      {/* Message for logged-in users who haven't purchased or order not delivered */}
+      {user && !hasPurchased && !userReview && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card rounded-xl p-6 border border-border/50 mb-8 text-center"
+        >
+          <p className="text-muted-foreground">
+            Only customers who have purchased and received this product can leave a review.
+          </p>
         </motion.div>
       )}
 
