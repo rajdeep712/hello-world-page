@@ -1,14 +1,69 @@
+import { motion } from 'framer-motion';
+import potteryVaseImage from '@/assets/pottery-vase-3d.png';
+
 const PotteryVase3D = () => {
   return (
-    <div className="w-full h-full flex items-center justify-center">
-      <iframe
-        title="Hydria apothecary vase"
-        frameBorder="0"
-        allowFullScreen
-        allow="autoplay; fullscreen; xr-spatial-tracking"
-        className="w-full h-full max-w-[500px] max-h-[600px]"
-        src="https://sketchfab.com/models/7d6938c0c0b54b06a0210a982a73023e/embed?autospin=1&autostart=1&camera=0&preload=1&transparent=1&ui_animations=0&ui_infos=0&ui_stop=0&ui_inspector=0&ui_hint=0&ui_ar=0&ui_help=0&ui_settings=0&ui_vr=0&ui_fullscreen=0&ui_annotations=0"
-      />
+    <div 
+      className="w-full h-full flex items-center justify-center"
+      style={{ perspective: '1200px' }}
+    >
+      <motion.div
+        className="relative"
+        style={{ transformStyle: 'preserve-3d' }}
+        animate={{ 
+          rotateY: [0, 360],
+        }}
+        transition={{ 
+          duration: 25, 
+          repeat: Infinity, 
+          ease: "linear" 
+        }}
+      >
+        {/* Floating animation wrapper */}
+        <motion.div
+          animate={{ y: [0, -15, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          className="relative"
+        >
+          {/* Soft glow effect behind the vase */}
+          <div 
+            className="absolute inset-0 blur-3xl opacity-30"
+            style={{
+              background: 'radial-gradient(circle, hsl(35 45% 70%) 0%, hsl(25 40% 50%) 40%, transparent 70%)',
+              transform: 'scale(1.8)',
+            }}
+          />
+          
+          {/* Shadow under the vase */}
+          <div 
+            className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-48 h-8 blur-xl opacity-40"
+            style={{
+              background: 'radial-gradient(ellipse, hsl(25 30% 25%) 0%, transparent 70%)',
+              transform: 'rotateX(90deg)',
+            }}
+          />
+          
+          {/* Main vase image with 3D effect */}
+          <motion.img
+            src={potteryVaseImage}
+            alt="Decorative pottery vase"
+            className="relative z-10 w-64 h-auto object-contain drop-shadow-2xl"
+            style={{
+              filter: 'drop-shadow(0 25px 50px hsl(25 40% 20% / 0.5))',
+            }}
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
+          />
+          
+          {/* Subtle reflection/shine overlay */}
+          <div 
+            className="absolute inset-0 z-20 pointer-events-none"
+            style={{
+              background: 'linear-gradient(135deg, transparent 30%, hsl(45 30% 90% / 0.1) 50%, transparent 70%)',
+            }}
+          />
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
