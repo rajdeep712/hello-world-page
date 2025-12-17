@@ -32,6 +32,8 @@ const formatMarkdown = (text: string): string => {
 const ChatWidget = () => {
   const [sessionId] = useState(() => crypto.randomUUID());
   const [isOpen, setIsOpen] = useState(false);
+  const [hasPlayedIntroAnimation, setHasPlayedIntroAnimation] = useState(false);
+  const [triggerBounce, setTriggerBounce] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -43,6 +45,19 @@ const ChatWidget = () => {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Trigger bounce animation after Basho fade-in effect (approximately 3.5s)
+  useEffect(() => {
+    if (!hasPlayedIntroAnimation) {
+      const timer = setTimeout(() => {
+        setTriggerBounce(true);
+        setHasPlayedIntroAnimation(true);
+        // Reset bounce after animation completes
+        setTimeout(() => setTriggerBounce(false), 800);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [hasPlayedIntroAnimation]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -122,6 +137,14 @@ const ChatWidget = () => {
         className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-terracotta to-terracotta/80 text-cream shadow-warm hover:shadow-xl transition-all duration-300 flex items-center justify-center border-2 border-cream/20"
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
+        animate={triggerBounce ? {
+          y: [0, -12, 0, -8, 0, -4, 0],
+          rotate: [0, -3, 3, -2, 2, -1, 0],
+        } : {}}
+        transition={triggerBounce ? {
+          duration: 0.7,
+          ease: "easeInOut",
+        } : { duration: 0.2 }}
         aria-label="Open chat"
       >
         <AnimatePresence mode="wait">
