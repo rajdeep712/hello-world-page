@@ -1,8 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -143,7 +141,7 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // Use email/name from order record (trusted data), not from request
+    // Use email/name from order record (trusted data)
     const customer_email = order.customer_email;
     const customer_name = order.customer_name;
 
@@ -171,10 +169,12 @@ serve(async (req: Request): Promise<Response> => {
     const hasWorkshops = orderItems.some((item: { item_type: string }) => item.item_type === 'workshop');
 
     const workshopNote = hasWorkshops ? `
-      <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin: 20px 0;">
-        <h3 style="margin: 0 0 8px 0; color: #92400e;">Workshop Booking Confirmed!</h3>
-        <p style="margin: 0; color: #78350f;">We're excited to have you join us! You'll receive a separate email with workshop details, including date, time, and what to bring.</p>
-      </div>
+      <tr><td colspan="4" style="padding: 0;">
+        <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin: 20px 0;">
+          <h3 style="margin: 0 0 8px 0; color: #92400e;">Workshop Booking Confirmed!</h3>
+          <p style="margin: 0; color: #78350f;">We're excited to have you join us! You'll receive a separate email with workshop details.</p>
+        </div>
+      </td></tr>
     ` : '';
 
     const emailHtml = `
@@ -184,89 +184,125 @@ serve(async (req: Request): Promise<Response> => {
         <meta charset="utf-8">
         <title>Order Confirmation</title>
       </head>
-      <body style="font-family: 'Georgia', serif; background-color: #faf9f7; margin: 0; padding: 20px;">
-        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-          
-          <div style="background-color: #292524; padding: 32px; text-align: center;">
-            <img src="https://hkxmiedtdrdjddplexue.supabase.co/storage/v1/object/public/assets/logo.jpg" alt="Basho" style="height: 60px; width: auto; margin-bottom: 8px;" />
-          </div>
-          
-          <div style="padding: 32px;">
-            <h2 style="color: #292524; margin: 0 0 8px 0;">Thank you for your order, ${customer_name}!</h2>
-            <p style="color: #78716c; margin: 0 0 24px 0;">Your order has been confirmed and is being processed.</p>
-            
-            <div style="background-color: #f5f5f4; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-              <p style="margin: 0; color: #57534e;"><strong>Order Number:</strong> ${order.order_number}</p>
-              <p style="margin: 8px 0 0 0; color: #57534e;"><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}</p>
-            </div>
+      <body style="font-family: Georgia, serif; background-color: #faf9f7; margin: 0; padding: 20px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f7;">
+          <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+              
+              <tr><td style="background-color: #292524; padding: 32px; text-align: center;">
+                <h1 style="font-family: Georgia, serif; color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 2px;">Bosco By Shivangi</h1>
+                <p style="color: #a8a29e; margin: 8px 0 0 0; font-size: 12px; letter-spacing: 3px; text-transform: uppercase;">Handcrafted Pottery</p>
+              </td></tr>
+              
+              <tr><td style="padding: 32px;">
+                <h2 style="color: #292524; margin: 0 0 8px 0;">Thank you for your order, ${customer_name}!</h2>
+                <p style="color: #78716c; margin: 0 0 24px 0;">Your order has been confirmed and is being processed.</p>
+                
+                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f4; border-radius: 8px; margin-bottom: 24px;">
+                  <tr><td style="padding: 16px;">
+                    <p style="margin: 0; color: #57534e;"><strong>Order Number:</strong> ${order.order_number}</p>
+                    <p style="margin: 8px 0 0 0; color: #57534e;"><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleDateString('en-IN', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}</p>
+                  </td></tr>
+                </table>
 
-            ${workshopNote}
-            
-            <h3 style="color: #292524; margin: 0 0 16px 0; border-bottom: 2px solid #292524; padding-bottom: 8px;">Order Details</h3>
-            
-            <table style="width: 100%; border-collapse: collapse;">
-              <thead>
-                <tr style="background-color: #f5f5f4;">
-                  <th style="padding: 12px; text-align: left; color: #57534e;">Item</th>
-                  <th style="padding: 12px; text-align: center; color: #57534e;">Qty</th>
-                  <th style="padding: 12px; text-align: right; color: #57534e;">Price</th>
-                  <th style="padding: 12px; text-align: right; color: #57534e;">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${itemsHtml}
-              </tbody>
+                ${workshopNote}
+                
+                <h3 style="color: #292524; margin: 0 0 16px 0; border-bottom: 2px solid #292524; padding-bottom: 8px;">Order Details</h3>
+                
+                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                  <thead>
+                    <tr style="background-color: #f5f5f4;">
+                      <th style="padding: 12px; text-align: left; color: #57534e;">Item</th>
+                      <th style="padding: 12px; text-align: center; color: #57534e;">Qty</th>
+                      <th style="padding: 12px; text-align: right; color: #57534e;">Price</th>
+                      <th style="padding: 12px; text-align: right; color: #57534e;">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${itemsHtml}
+                  </tbody>
+                </table>
+                
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 24px; padding-top: 16px; border-top: 2px solid #292524;">
+                  <tr>
+                    <td style="color: #78716c; padding: 4px 0;">Subtotal:</td>
+                    <td style="color: #292524; text-align: right; padding: 4px 0;">₹${order.subtotal.toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #78716c; padding: 4px 0;">Shipping:</td>
+                    <td style="color: #292524; text-align: right; padding: 4px 0;">₹${(order.shipping_cost || 0).toLocaleString()}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #292524; font-size: 18px; font-weight: bold; padding: 12px 0 0 0; border-top: 1px solid #e5e5e5;">Total:</td>
+                    <td style="color: #292524; font-size: 18px; font-weight: bold; text-align: right; padding: 12px 0 0 0; border-top: 1px solid #e5e5e5;">₹${order.total_amount.toLocaleString()}</td>
+                  </tr>
+                </table>
+
+                ${order.shipping_address ? `
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 24px; background-color: #f5f5f4; border-radius: 8px;">
+                    <tr><td style="padding: 16px;">
+                      <h4 style="margin: 0 0 8px 0; color: #292524;">Shipping Address</h4>
+                      <p style="margin: 0; color: #57534e; white-space: pre-line;">${order.shipping_address}</p>
+                    </td></tr>
+                  </table>
+                ` : ''}
+              </td></tr>
+              
+              <tr><td style="background-color: #292524; padding: 24px; text-align: center;">
+                <p style="color: #a8a29e; margin: 0 0 8px 0; font-size: 14px;">Thank you for supporting handcrafted pottery.</p>
+                <p style="color: #78716c; margin: 0; font-size: 12px;">© ${new Date().getFullYear()} Bosco By Shivangi. All rights reserved.</p>
+              </td></tr>
             </table>
-            
-            <div style="margin-top: 24px; padding-top: 16px; border-top: 2px solid #292524;">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="color: #78716c;">Subtotal:</span>
-                <span style="color: #292524;">₹${order.subtotal.toLocaleString()}</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="color: #78716c;">Shipping:</span>
-                <span style="color: #292524;">₹${(order.shipping_cost || 0).toLocaleString()}</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e5e5;">
-                <span style="color: #292524;">Total:</span>
-                <span style="color: #292524;">₹${order.total_amount.toLocaleString()}</span>
-              </div>
-            </div>
-
-            ${order.shipping_address ? `
-              <div style="margin-top: 24px; background-color: #f5f5f4; border-radius: 8px; padding: 16px;">
-                <h4 style="margin: 0 0 8px 0; color: #292524;">Shipping Address</h4>
-                <p style="margin: 0; color: #57534e; white-space: pre-line;">${order.shipping_address}</p>
-              </div>
-            ` : ''}
-          </div>
-          
-          <div style="background-color: #292524; padding: 24px; text-align: center;">
-            <p style="color: #a8a29e; margin: 0 0 8px 0; font-size: 14px;">Thank you for supporting handcrafted pottery.</p>
-            <p style="color: #78716c; margin: 0; font-size: 12px;">© ${new Date().getFullYear()} Basho Pottery Studio. All rights reserved.</p>
-          </div>
-        </div>
+          </td></tr>
+        </table>
       </body>
       </html>
     `;
 
-    const emailResponse = await resend.emails.send({
-      from: "Basho Pottery <onboarding@resend.dev>",
-      to: [customer_email],
-      subject: `Order Confirmed - ${order.order_number}`,
-      html: emailHtml,
-    });
+    // Send email via Gmail SMTP
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailAppPassword = Deno.env.get("GMAIL_APP_PASSWORD");
 
-    if (emailResponse.error) {
-      console.error("Email sending failed:", emailResponse.error);
-      throw new Error(`Email sending failed: ${emailResponse.error.message}`);
+    if (!gmailUser || !gmailAppPassword) {
+      console.error("Gmail credentials not configured");
+      return new Response(
+        JSON.stringify({ error: 'Email service not configured' }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
-    console.log("Email sent successfully:", emailResponse.data);
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp.gmail.com",
+        port: 465,
+        tls: true,
+        auth: {
+          username: gmailUser,
+          password: gmailAppPassword,
+        },
+      },
+    });
+
+    try {
+      await client.send({
+        from: `Bosco By Shivangi <${gmailUser}>`,
+        to: customer_email,
+        subject: `Order Confirmed - ${order.order_number}`,
+        html: emailHtml,
+      });
+
+      console.log("Order confirmation email sent successfully to:", customer_email);
+    } finally {
+      try {
+        await client.close();
+      } catch (closeError) {
+        console.error("SMTP close error:", closeError);
+      }
+    }
 
     // Create admin notification for new order
     const { error: notificationError } = await supabase
@@ -284,7 +320,7 @@ serve(async (req: Request): Promise<Response> => {
       console.log('Admin notification created for order:', order.order_number);
     }
 
-    return new Response(JSON.stringify({ success: true, emailResponse }), {
+    return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
