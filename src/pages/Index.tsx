@@ -12,6 +12,7 @@ import ExperiencesSection from "@/components/home/ExperiencesSection";
 import TrustSection from "@/components/home/TrustSection";
 import Footer from "@/components/Footer";
 import { Helmet } from "react-helmet-async";
+import ChatWidget from "@/components/ChatWidget";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -107,6 +108,7 @@ const Index = () => {
           <TrustSection />
         </main>
         <Footer />
+        <ChatWidget />
       </div>
     </>
   );
