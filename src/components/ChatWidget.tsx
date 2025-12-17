@@ -14,6 +14,7 @@ interface Message {
 const N8N_WEBHOOK_URL = "https://rajdeeppa53.app.n8n.cloud/webhook/477df94d-8bcf-439e-a49d-b96ceb0a91a6/chat";
 
 const ChatWidget = () => {
+  const [sessionId] = useState(() => crypto.randomUUID());
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -56,8 +57,9 @@ const ChatWidget = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: userMessage.content,
-          sessionId: "user-session-" + Date.now(),
+          sessionId: sessionId,
+          action: "sendMessage",
+          chatInput: userMessage.content,
         }),
       });
 
