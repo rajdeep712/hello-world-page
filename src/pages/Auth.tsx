@@ -59,10 +59,11 @@ const Auth = () => {
   const redirectTo = searchParams.get('redirect') || '/';
 
   useEffect(() => {
-    if (user) {
+    // Don't redirect if we're in the password reset flow
+    if (user && authStep !== "new-password" && authStep !== "reset-otp") {
       navigate(redirectTo);
     }
-  }, [user, navigate, redirectTo]);
+  }, [user, navigate, redirectTo, authStep]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -338,7 +339,10 @@ const Auth = () => {
           variant: "destructive",
         });
       } else {
+        // Important: Set authStep BEFORE the useEffect can trigger a redirect
+        // The verifyOtp with type "recovery" automatically logs in the user
         setAuthStep("new-password");
+        setOtpValue("");
         toast({
           title: "Code Verified",
           description: "Please enter your new password.",
