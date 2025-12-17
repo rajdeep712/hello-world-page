@@ -3,13 +3,14 @@ import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { ShoppingBag, Loader2 } from "lucide-react";
 import { ProductGridSkeleton } from "@/components/skeletons/ProductCardSkeleton";
+import ProductSearch from "@/components/ProductSearch";
 
 // Product images
 import wabiSabiBowl from "@/assets/products/wabi-sabi-bowl.jpg";
@@ -57,6 +58,7 @@ const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -79,9 +81,26 @@ const Products = () => {
     fetchProducts();
   }, []);
 
-  const filteredProducts = activeCategory === "All" 
-    ? products 
-    : products.filter(p => p.category.toLowerCase() === activeCategory.toLowerCase());
+  const filteredProducts = useMemo(() => {
+    let result = products;
+    
+    // Filter by category
+    if (activeCategory !== "All") {
+      result = result.filter(p => p.category.toLowerCase() === activeCategory.toLowerCase());
+    }
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(p => 
+        p.name.toLowerCase().includes(query) ||
+        p.category.toLowerCase().includes(query) ||
+        (p.description?.toLowerCase().includes(query) ?? false)
+      );
+    }
+    
+    return result;
+  }, [products, activeCategory, searchQuery]);
 
   const handleAddToCart = async (productId: string) => {
     setAddingToCart(productId);
@@ -117,10 +136,14 @@ const Products = () => {
                 <h1 className="font-serif text-4xl md:text-5xl text-foreground mt-4">
                   Our Products
                 </h1>
-                <p className="font-sans text-muted-foreground mt-4">
+                <p className="font-sans text-muted-foreground mt-4 mb-6">
                   Each piece is wheel-thrown by hand and fired in our studio. 
                   All items are food-safe, microwave-safe, and dishwasher-safe.
                 </p>
+                <ProductSearch 
+                  onSearch={setSearchQuery} 
+                  productImages={productImages} 
+                />
               </motion.div>
             </div>
           </section>
@@ -152,7 +175,14 @@ const Products = () => {
               {loading ? (
                 <ProductGridSkeleton count={8} />
               ) : filteredProducts.length === 0 ? (
-                <p className="text-center text-muted-foreground py-12">No products found in this category.</p>
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">
+                    {searchQuery 
+                      ? `No products found for "${searchQuery}"${activeCategory !== "All" ? ` in ${activeCategory}` : ""}`
+                      : "No products found in this category."
+                    }
+                  </p>
+                </div>
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
                   {filteredProducts.map((product, index) => (
