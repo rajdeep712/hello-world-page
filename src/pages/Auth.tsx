@@ -8,8 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
 import { Helmet } from "react-helmet-async";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -273,19 +271,15 @@ const Auth = () => {
         />
       </Helmet>
 
-      <div className="min-h-screen bg-paper">
-        <Navigation />
-        
-        <main className="pt-32 pb-24 lg:pt-0 lg:pb-0">
-          <div className="container mx-auto px-6 md:px-8 lg:px-0 lg:max-w-none">
-            <div className="flex min-h-[calc(100vh-6rem)] lg:min-h-screen">
-              {/* Left Side - Form */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-                className="w-full lg:w-1/2 lg:px-12 xl:px-20 flex flex-col justify-center max-w-md mx-auto lg:max-w-lg"
-              >
+      <div className="min-h-screen bg-background flex">
+        {/* Left Side - Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+          className="w-full lg:w-1/2 px-6 md:px-12 lg:px-16 xl:px-24 flex flex-col justify-center min-h-screen"
+        >
+          <div className="max-w-md mx-auto w-full">
               {/* Header */}
               <div className="text-center mb-12 lg:mb-6">
                 <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-4 lg:mb-2">
@@ -562,109 +556,105 @@ const Auth = () => {
                   )}
                 </AnimatePresence>
               </div>
-              </motion.div>
+          </div>
+        </motion.div>
 
-              {/* Right Side - Pottery Animation (Desktop Only) */}
-              <div className="hidden lg:flex lg:w-1/2 bg-wabi-clay/10 relative overflow-hidden items-center justify-center">
-                <div className="absolute inset-0 bg-gradient-to-br from-wabi-earth/5 via-transparent to-wabi-clay/10" />
-                
-                {/* Floating pottery shapes animation */}
-                <div className="relative w-full h-full flex items-center justify-center">
-                  {/* Central pottery wheel */}
-                  <motion.div
-                    className="absolute w-48 h-48 rounded-full border-4 border-wabi-earth/20"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                  />
-                  <motion.div
-                    className="absolute w-64 h-64 rounded-full border-2 border-wabi-clay/15"
-                    animate={{ rotate: -360 }}
-                    transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                  />
-                  <motion.div
-                    className="absolute w-80 h-80 rounded-full border border-wabi-sand/20"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                  />
-                  
-                  {/* Floating clay shapes */}
-                  <motion.div
-                    className="absolute w-16 h-16 bg-wabi-earth/20 rounded-full"
-                    style={{ top: "20%", left: "25%" }}
-                    animate={{ 
-                      y: [0, -20, 0],
-                      scale: [1, 1.1, 1],
-                    }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  <motion.div
-                    className="absolute w-12 h-12 bg-wabi-clay/25 rounded-full"
-                    style={{ top: "60%", right: "20%" }}
-                    animate={{ 
-                      y: [0, 15, 0],
-                      scale: [1, 0.9, 1],
-                    }}
-                    transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                  />
-                  <motion.div
-                    className="absolute w-8 h-8 bg-wabi-sand/30 rounded-full"
-                    style={{ bottom: "30%", left: "30%" }}
-                    animate={{ 
-                      y: [0, -10, 0],
-                      x: [0, 10, 0],
-                    }}
-                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                  />
-                  <motion.div
-                    className="absolute w-20 h-20 bg-wabi-earth/15 rounded-full"
-                    style={{ top: "35%", right: "30%" }}
-                    animate={{ 
-                      y: [0, 25, 0],
-                    }}
-                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
-                  />
-                  
-                  {/* Vase silhouette */}
-                  <motion.div
-                    className="relative z-10"
-                    animate={{ y: [0, -8, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <svg
-                      viewBox="0 0 100 140"
-                      className="w-32 h-44 text-wabi-earth/40"
-                      fill="currentColor"
-                    >
-                      <path d="M50 0C45 0 40 5 38 12C36 19 35 28 35 35C35 42 34 48 32 52C30 56 27 60 25 65C23 70 22 76 22 82C22 95 28 106 38 115C42 118 45 122 47 128C48 132 49 136 50 140C51 136 52 132 53 128C55 122 58 118 62 115C72 106 78 95 78 82C78 76 77 70 75 65C73 60 70 56 68 52C66 48 65 42 65 35C65 28 64 19 62 12C60 5 55 0 50 0Z" />
-                    </svg>
-                  </motion.div>
-                  
-                  {/* Text overlay */}
-                  <div className="absolute bottom-16 left-0 right-0 text-center">
-                    <motion.p
-                      className="font-serif text-2xl text-wabi-earth/60 tracking-wide"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5, duration: 1 }}
-                    >
-                      Crafted with Soul
-                    </motion.p>
-                    <motion.p
-                      className="text-sm text-wabi-clay/50 mt-2 tracking-widest uppercase"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.8, duration: 1 }}
-                    >
-                      Bosco By Shivangi
-                    </motion.p>
-                  </div>
-                </div>
+        {/* Right Side - Gradient Panel (Desktop Only) */}
+        <div className="hidden lg:flex lg:w-1/2 p-4">
+          <div className="w-full h-full rounded-3xl bg-gradient-to-br from-wabi-sand/40 via-wabi-clay/30 to-wabi-earth/40 relative overflow-hidden flex items-center justify-center">
+            {/* Animated gradient overlay */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-tr from-wabi-earth/20 via-transparent to-wabi-clay/30"
+              animate={{
+                opacity: [0.5, 0.8, 0.5],
+              }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            />
+            
+            {/* Floating pottery shapes animation */}
+            <div className="relative w-full h-full flex items-center justify-center">
+              {/* Central pottery wheel rings */}
+              <motion.div
+                className="absolute w-48 h-48 rounded-full border-4 border-wabi-earth/15"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              />
+              <motion.div
+                className="absolute w-64 h-64 rounded-full border-2 border-wabi-clay/10"
+                animate={{ rotate: -360 }}
+                transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+              />
+              <motion.div
+                className="absolute w-80 h-80 rounded-full border border-wabi-sand/15"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+              />
+              
+              {/* Floating clay shapes */}
+              <motion.div
+                className="absolute w-16 h-16 bg-wabi-earth/15 rounded-full blur-sm"
+                style={{ top: "20%", left: "25%" }}
+                animate={{ 
+                  y: [0, -20, 0],
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div
+                className="absolute w-12 h-12 bg-wabi-clay/20 rounded-full blur-sm"
+                style={{ top: "60%", right: "20%" }}
+                animate={{ 
+                  y: [0, 15, 0],
+                  scale: [1, 0.9, 1],
+                }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              />
+              <motion.div
+                className="absolute w-20 h-20 bg-wabi-earth/10 rounded-full blur-sm"
+                style={{ top: "35%", right: "30%" }}
+                animate={{ 
+                  y: [0, 25, 0],
+                }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
+              />
+              
+              {/* Vase silhouette */}
+              <motion.div
+                className="relative z-10"
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <svg
+                  viewBox="0 0 100 140"
+                  className="w-32 h-44 text-wabi-earth/30"
+                  fill="currentColor"
+                >
+                  <path d="M50 0C45 0 40 5 38 12C36 19 35 28 35 35C35 42 34 48 32 52C30 56 27 60 25 65C23 70 22 76 22 82C22 95 28 106 38 115C42 118 45 122 47 128C48 132 49 136 50 140C51 136 52 132 53 128C55 122 58 118 62 115C72 106 78 95 78 82C78 76 77 70 75 65C73 60 70 56 68 52C66 48 65 42 65 35C65 28 64 19 62 12C60 5 55 0 50 0Z" />
+                </svg>
+              </motion.div>
+              
+              {/* Text overlay */}
+              <div className="absolute bottom-20 left-0 right-0 text-center">
+                <motion.p
+                  className="font-serif text-2xl text-wabi-earth/50 tracking-wide"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5, duration: 1 }}
+                >
+                  Crafted with Soul
+                </motion.p>
+                <motion.p
+                  className="text-sm text-wabi-clay/40 mt-2 tracking-widest uppercase"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.8, duration: 1 }}
+                >
+                  Bosco By Shivangi
+                </motion.p>
               </div>
             </div>
           </div>
-        </main>
-
-        <Footer />
+        </div>
       </div>
     </>
   );
