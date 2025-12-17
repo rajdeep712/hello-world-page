@@ -276,7 +276,7 @@ const Auth = () => {
       <div className="min-h-screen bg-paper">
         <Navigation />
         
-        <main className="pt-32 pb-24 lg:pt-24 lg:pb-0">
+        <main className="pt-32 pb-24 lg:pt-0 lg:pb-0">
           <div className="container mx-auto px-6 md:px-8 lg:px-0 lg:max-w-none">
             <div className="flex min-h-[calc(100vh-6rem)] lg:min-h-screen">
               {/* Left Side - Form */}
@@ -284,21 +284,21 @@ const Auth = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-                className="w-full lg:w-1/2 lg:px-16 xl:px-24 flex flex-col justify-center max-w-md mx-auto lg:max-w-none"
+                className="w-full lg:w-1/2 lg:px-12 xl:px-20 flex flex-col justify-center max-w-md mx-auto lg:max-w-lg"
               >
               {/* Header */}
-              <div className="text-center mb-12">
-                <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-4">
+              <div className="text-center mb-12 lg:mb-6">
+                <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-4 lg:mb-2">
                   {authStep === "otp" ? "Verification" : isLogin ? "Welcome Back" : "Join Us"}
                 </p>
-                <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
+                <h1 className="font-serif text-4xl md:text-5xl lg:text-4xl text-foreground mb-4 lg:mb-2">
                   {authStep === "otp" ? "Enter Code" : isLogin ? "Sign In" : "Create Account"}
                 </h1>
                 <div className="w-12 h-px bg-border mx-auto" />
               </div>
 
               {/* Form Card */}
-              <div className="bg-card border border-border p-8 md:p-10">
+              <div className="bg-card border border-border p-8 md:p-10 lg:p-6">
                 <AnimatePresence mode="wait">
                   {authStep === "otp" ? (
                     <motion.div
@@ -377,7 +377,7 @@ const Auth = () => {
                       transition={{ duration: 0.3 }}
                     >
                       {/* Toggle Buttons */}
-                      <div className="flex border-b border-border mb-8">
+                      <div className="flex border-b border-border mb-8 lg:mb-4">
                         <button
                           type="button"
                           className={`flex-1 pb-4 text-sm tracking-wide font-sans transition-all duration-300 ${
@@ -412,7 +412,7 @@ const Auth = () => {
                       <Button
                         type="button"
                         variant="outline"
-                        className="w-full mb-8 h-12 border-border hover:bg-muted text-foreground"
+                        className="w-full mb-8 lg:mb-4 h-12 lg:h-10 border-border hover:bg-muted text-foreground"
                         onClick={handleGoogleSignIn}
                         disabled={loading}
                       >
@@ -438,7 +438,7 @@ const Auth = () => {
                       </Button>
 
                       {/* Divider */}
-                      <div className="relative mb-8">
+                      <div className="relative mb-8 lg:mb-4">
                         <div className="absolute inset-0 flex items-center">
                           <div className="w-full border-t border-border" />
                         </div>
@@ -450,7 +450,7 @@ const Auth = () => {
                       </div>
 
                       {/* Form */}
-                      <form onSubmit={handleSubmit} className="space-y-6">
+                      <form onSubmit={handleSubmit} className="space-y-6 lg:space-y-4">
                         {!isLogin && (
                           <div className="space-y-2">
                             <Label htmlFor="fullName" className="text-xs tracking-wider uppercase text-muted-foreground">
@@ -465,7 +465,7 @@ const Auth = () => {
                                 placeholder="Your name"
                                 value={formData.fullName}
                                 onChange={handleInputChange}
-                                className={`pl-12 h-12 bg-background border-border ${errors.fullName ? 'border-destructive' : ''}`}
+                                className={`pl-12 h-12 lg:h-10 bg-background border-border ${errors.fullName ? 'border-destructive' : ''}`}
                                 disabled={loading}
                               />
                             </div>
@@ -489,7 +489,7 @@ const Auth = () => {
                                 placeholder="10-digit mobile number"
                                 value={formData.phone}
                                 onChange={handleInputChange}
-                                className={`pl-12 h-12 bg-background border-border ${errors.phone ? 'border-destructive' : ''}`}
+                                className={`pl-12 h-12 lg:h-10 bg-background border-border ${errors.phone ? 'border-destructive' : ''}`}
                                 disabled={loading}
                               />
                             </div>
@@ -512,7 +512,7 @@ const Auth = () => {
                               placeholder="you@example.com"
                               value={formData.email}
                               onChange={handleInputChange}
-                              className={`pl-12 h-12 bg-background border-border ${errors.email ? 'border-destructive' : ''}`}
+                              className={`pl-12 h-12 lg:h-10 bg-background border-border ${errors.email ? 'border-destructive' : ''}`}
                               disabled={loading}
                             />
                           </div>
@@ -534,7 +534,7 @@ const Auth = () => {
                               placeholder="••••••••"
                               value={formData.password}
                               onChange={handleInputChange}
-                              className={`pl-12 pr-12 h-12 bg-background border-border ${errors.password ? 'border-destructive' : ''}`}
+                              className={`pl-12 pr-12 h-12 lg:h-10 bg-background border-border ${errors.password ? 'border-destructive' : ''}`}
                               disabled={loading}
                             />
                             <button
@@ -552,7 +552,7 @@ const Auth = () => {
 
                         <Button
                           type="submit"
-                          className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 text-sm tracking-widest uppercase"
+                          className="w-full h-12 lg:h-10 bg-primary text-primary-foreground hover:bg-primary/90 text-sm tracking-widest uppercase"
                           disabled={loading}
                         >
                           {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
