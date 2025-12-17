@@ -254,7 +254,7 @@ const Products = () => {
                       
                       <div className="relative bg-card rounded-xl overflow-hidden border border-border/50 group-hover:border-primary/30 transition-all duration-500 group-hover:shadow-warm">
                         {/* Image container - clickable */}
-                        <Link to={`/products/${product.id}`}>
+                        <Link to={`/products/${product.id}`} className="block">
                           <div className="aspect-square bg-gradient-to-br from-secondary via-muted to-card relative overflow-hidden cursor-pointer">
                             {productImages[product.name] || product.image_url ? (
                               <motion.img 
@@ -272,32 +272,33 @@ const Products = () => {
                             
                             {/* Overlay gradient */}
                             <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                            
+                            {/* Quick add button overlay - positioned at bottom of image */}
+                            <div 
+                              className="absolute inset-x-0 bottom-0 p-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out z-10"
+                              onClick={(e) => e.preventDefault()}
+                            >
+                              <Button 
+                                size="sm" 
+                                variant="terracotta"
+                                className="w-full backdrop-blur-sm"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleAddToCart(product.id);
+                                }}
+                                disabled={addingToCart === product.id}
+                              >
+                                {addingToCart === product.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                ) : (
+                                  <ShoppingBag className="h-4 w-4 mr-2" />
+                                )}
+                                Add to Cart
+                              </Button>
+                            </div>
                           </div>
                         </Link>
-                        
-                        {/* Quick add button overlay */}
-                        <motion.div 
-                          className="absolute bottom-[calc(100%-var(--image-height,0px)+1rem)] inset-x-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-10"
-                          style={{ bottom: "auto", top: "calc(100% - 140px)" }}
-                        >
-                          <Button 
-                            size="sm" 
-                            variant="terracotta"
-                            className="w-full backdrop-blur-sm"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleAddToCart(product.id);
-                            }}
-                            disabled={addingToCart === product.id}
-                          >
-                            {addingToCart === product.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            ) : (
-                              <ShoppingBag className="h-4 w-4 mr-2" />
-                            )}
-                            Add to Cart
-                          </Button>
-                        </motion.div>
                         
                         {/* Content - clickable */}
                         <Link to={`/products/${product.id}`}>
