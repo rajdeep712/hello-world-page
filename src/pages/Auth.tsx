@@ -25,7 +25,7 @@ const signInSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-type AuthStep = "form" | "otp";
+type AuthStep = "form" | "otp" | "forgot-password" | "reset-otp" | "new-password";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -41,6 +41,9 @@ const Auth = () => {
     phone: "",
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [resetEmail, setResetEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const { signIn, signUp, signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
@@ -247,6 +250,183 @@ const Auth = () => {
     setAuthStep("form");
     setOtpValue("");
     setPendingEmail("");
+    setResetEmail("");
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  const handleForgotPassword = async () => {
+    if (!resetEmail) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const emailSchema = z.string().email("Invalid email address");
+    const result = emailSchema.safeParse(resetEmail);
+    if (!result.success) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        setPendingEmail(resetEmail);
+        setAuthStep("reset-otp");
+        toast({
+          title: "Reset Code Sent",
+          description: "Please check your email for the 6-digit reset code.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyResetOtp = async () => {
+    if (otpValue.length !== 6) {
+      toast({
+        title: "Invalid Code",
+        description: "Please enter the complete 6-digit reset code.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: pendingEmail,
+        token: otpValue,
+        type: "recovery",
+      });
+
+      if (error) {
+        toast({
+          title: "Verification Failed",
+          description: error.message || "Invalid or expired code. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        setAuthStep("new-password");
+        toast({
+          title: "Code Verified",
+          description: "Please enter your new password.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSetNewPassword = async () => {
+    if (newPassword.length < 6) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Passwords Don't Match",
+        description: "Please make sure your passwords match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Password Updated",
+          description: "Your password has been successfully updated.",
+        });
+        handleBackToForm();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendResetOtp = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(pendingEmail, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) {
+        toast({
+          title: "Failed to Resend",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Code Resent",
+          description: "A new reset code has been sent to your email.",
+        });
+        setOtpValue("");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleSignIn = async () => {
@@ -284,10 +464,10 @@ const Auth = () => {
               {/* Header */}
               <div className="text-center mb-12 lg:mb-6">
                 <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-4 lg:mb-2">
-                  {authStep === "otp" ? "Verification" : isLogin ? "Welcome Back" : "Join Us"}
+                  {authStep === "otp" ? "Verification" : authStep === "forgot-password" ? "Password Reset" : authStep === "reset-otp" ? "Verification" : authStep === "new-password" ? "New Password" : isLogin ? "Welcome Back" : "Join Us"}
                 </p>
                 <h1 className="font-serif text-4xl md:text-5xl lg:text-4xl text-foreground mb-4 lg:mb-2">
-                  {authStep === "otp" ? "Enter Code" : isLogin ? "Sign In" : "Create Account"}
+                  {authStep === "otp" ? "Enter Code" : authStep === "forgot-password" ? "Forgot Password" : authStep === "reset-otp" ? "Enter Code" : authStep === "new-password" ? "Set Password" : isLogin ? "Sign In" : "Create Account"}
                 </h1>
                 <div className="w-12 h-px bg-border mx-auto" />
               </div>
@@ -295,7 +475,187 @@ const Auth = () => {
               {/* Form Card */}
               <div className="bg-card border border-border p-8 md:p-10 lg:p-6">
                 <AnimatePresence mode="wait">
-                  {authStep === "otp" ? (
+                  {authStep === "forgot-password" ? (
+                    <motion.div
+                      key="forgot-password"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <button
+                        type="button"
+                        onClick={handleBackToForm}
+                        className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="text-sm">Back to Sign In</span>
+                      </button>
+
+                      <div className="space-y-6">
+                        <p className="text-muted-foreground text-sm">
+                          Enter your email address and we'll send you a code to reset your password.
+                        </p>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="resetEmail" className="text-xs tracking-wider uppercase text-muted-foreground">
+                            Email
+                          </Label>
+                          <div className="relative">
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input
+                              id="resetEmail"
+                              type="email"
+                              placeholder="you@example.com"
+                              value={resetEmail}
+                              onChange={(e) => setResetEmail(e.target.value)}
+                              className="pl-12 h-12 lg:h-10 bg-background border-border"
+                              disabled={loading}
+                            />
+                          </div>
+                        </div>
+
+                        <Button
+                          onClick={handleForgotPassword}
+                          className="w-full h-12 lg:h-10 bg-primary text-primary-foreground hover:bg-primary/90 text-sm tracking-widest uppercase"
+                          disabled={loading}
+                        >
+                          {loading ? "Sending..." : "Send Reset Code"}
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ) : authStep === "reset-otp" ? (
+                    <motion.div
+                      key="reset-otp"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setAuthStep("forgot-password")}
+                        className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="text-sm">Back</span>
+                      </button>
+
+                      <div className="text-center space-y-6">
+                        <div className="space-y-2">
+                          <p className="text-muted-foreground">
+                            We sent a reset code to
+                          </p>
+                          <p className="font-medium text-foreground">{pendingEmail}</p>
+                        </div>
+
+                        <div className="flex justify-center py-4">
+                          <InputOTP
+                            maxLength={6}
+                            value={otpValue}
+                            onChange={setOtpValue}
+                          >
+                            <InputOTPGroup>
+                              <InputOTPSlot index={0} />
+                              <InputOTPSlot index={1} />
+                              <InputOTPSlot index={2} />
+                              <InputOTPSlot index={3} />
+                              <InputOTPSlot index={4} />
+                              <InputOTPSlot index={5} />
+                            </InputOTPGroup>
+                          </InputOTP>
+                        </div>
+
+                        <Button
+                          onClick={handleVerifyResetOtp}
+                          className="w-full h-12 lg:h-10 bg-primary text-primary-foreground hover:bg-primary/90 text-sm tracking-widest uppercase"
+                          disabled={loading || otpValue.length !== 6}
+                        >
+                          {loading ? "Verifying..." : "Verify Code"}
+                        </Button>
+
+                        <div className="pt-4 border-t border-border">
+                          <p className="text-sm text-muted-foreground mb-2">
+                            Didn't receive the code?
+                          </p>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={handleResendResetOtp}
+                            disabled={loading}
+                            className="text-primary hover:text-primary/80"
+                          >
+                            Resend Code
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : authStep === "new-password" ? (
+                    <motion.div
+                      key="new-password"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="space-y-6">
+                        <p className="text-muted-foreground text-sm">
+                          Create a new password for your account.
+                        </p>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="newPassword" className="text-xs tracking-wider uppercase text-muted-foreground">
+                            New Password
+                          </Label>
+                          <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input
+                              id="newPassword"
+                              type={showPassword ? "text" : "password"}
+                              placeholder="••••••••"
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              className="pl-12 pr-12 h-12 lg:h-10 bg-background border-border"
+                              disabled={loading}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="confirmPassword" className="text-xs tracking-wider uppercase text-muted-foreground">
+                            Confirm Password
+                          </Label>
+                          <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input
+                              id="confirmPassword"
+                              type={showPassword ? "text" : "password"}
+                              placeholder="••••••••"
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              className="pl-12 h-12 lg:h-10 bg-background border-border"
+                              disabled={loading}
+                            />
+                          </div>
+                        </div>
+
+                        <Button
+                          onClick={handleSetNewPassword}
+                          className="w-full h-12 lg:h-10 bg-primary text-primary-foreground hover:bg-primary/90 text-sm tracking-widest uppercase"
+                          disabled={loading}
+                        >
+                          {loading ? "Updating..." : "Update Password"}
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ) : authStep === "otp" ? (
                     <motion.div
                       key="otp"
                       initial={{ opacity: 0, x: 20 }}
@@ -544,6 +904,18 @@ const Auth = () => {
                             <p className="text-xs text-destructive">{errors.password}</p>
                           )}
                         </div>
+
+                        {isLogin && (
+                          <div className="text-right">
+                            <button
+                              type="button"
+                              onClick={() => setAuthStep("forgot-password")}
+                              className="text-sm text-primary hover:text-primary/80 transition-colors"
+                            >
+                              Forgot password?
+                            </button>
+                          </div>
+                        )}
 
                         <Button
                           type="submit"
