@@ -13,6 +13,22 @@ interface Message {
 
 const N8N_WEBHOOK_URL = "https://rajdeeppa53.app.n8n.cloud/webhook/477df94d-8bcf-439e-a49d-b96ceb0a91a6/chat";
 
+const formatMarkdown = (text: string): string => {
+  return text
+    // Bold: **text**
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    // Italic: *text* (but not inside bold)
+    .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
+    // Inline code: `code`
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    // Bullet lists: lines starting with - or *
+    .replace(/^[\-\*]\s+(.+)$/gm, '<li>$1</li>')
+    // Wrap consecutive <li> in <ul>
+    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+    // Line breaks
+    .replace(/\n/g, '<br />');
+};
+
 const ChatWidget = () => {
   const [sessionId] = useState(() => crypto.randomUUID());
   const [isOpen, setIsOpen] = useState(false);
@@ -174,12 +190,10 @@ const ChatWidget = () => {
                         : "bg-sand/50 text-charcoal rounded-bl-md"
                     }`}
                   >
-                    <p 
-                      className="text-sm leading-relaxed"
+                    <div 
+                      className="text-sm leading-relaxed prose-sm [&_strong]:font-semibold [&_em]:italic [&_code]:bg-charcoal/10 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:my-1 [&_li]:my-0.5"
                       dangerouslySetInnerHTML={{
-                        __html: message.content
-                          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                          .replace(/\n/g, '<br />')
+                        __html: formatMarkdown(message.content)
                       }}
                     />
                   </div>
