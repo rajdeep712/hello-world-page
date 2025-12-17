@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowLeft } from "lucide-react";
@@ -580,13 +580,7 @@ const Auth = () => {
             
             {/* 3D Vase */}
             <div className="absolute inset-0">
-              <Suspense fallback={
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="w-16 h-16 border-2 border-wabi-earth/30 border-t-wabi-earth rounded-full animate-spin" />
-                </div>
-              }>
-                <PotteryVase3D />
-              </Suspense>
+              <PotteryVase3D />
             </div>
             
             {/* Text overlay */}
