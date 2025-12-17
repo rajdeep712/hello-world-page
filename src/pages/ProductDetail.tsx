@@ -5,13 +5,12 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ShoppingBag, Loader2, Package, Truck, Shield } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import ProductReviews from "@/components/ProductReviews";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/useCart";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-
-// Product images
 import wabiSabiBowl from "@/assets/products/wabi-sabi-bowl.jpg";
 import zenTeaCupSet from "@/assets/products/zen-tea-cup-set.jpg";
 import rakuDinnerPlate from "@/assets/products/raku-dinner-plate.jpg";
@@ -274,6 +273,9 @@ const ProductDetail = () => {
                 </div>
               </motion.div>
             </div>
+
+            {/* Reviews Section */}
+            <ProductReviews productId={product.id} />
           </section>
         </main>
         <Footer />
