@@ -55,13 +55,13 @@ const Navigation = () => {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-        className={`fixed z-50 left-0 right-0 transition-all duration-700 ${
+        className={`fixed z-50 left-1/2 -translate-x-1/2 transition-all duration-700 max-w-6xl w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] rounded-full ${
           scrolled
-            ? "top-0 bg-parchment/70 backdrop-blur-md border-b border-border/50"
-            : "top-6 bg-parchment/50 backdrop-blur-sm"
+            ? "top-3 bg-parchment/80 backdrop-blur-md border border-border/50 shadow-soft"
+            : "top-6 bg-parchment/60 backdrop-blur-sm border border-border/30"
         }`}
       >
-        <nav className="container mx-auto px-6 md:px-8 lg:px-12 py-4 flex items-center justify-between">
+        <nav className="px-6 md:px-8 py-3 flex items-center justify-between">
           <Link to="/" className="flex items-center">
             <motion.img 
               src={logo} 
