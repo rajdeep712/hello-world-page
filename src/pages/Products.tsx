@@ -195,7 +195,7 @@ const Products = () => {
           </section>
 
           {/* Category Filter */}
-          <section className="py-6 bg-background border-b border-border sticky top-0 z-30 before:content-[''] before:absolute before:inset-x-0 before:bottom-full before:h-24 before:bg-background">
+          <section className="py-6 bg-background border-b border-border sticky top-16 z-30">
             <div className="container px-6 space-y-4">
               <div className="flex flex-wrap gap-2">
                 {categories.map((cat) => (
