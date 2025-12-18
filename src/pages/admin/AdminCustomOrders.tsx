@@ -55,14 +55,14 @@ interface CustomOrderRequest {
 }
 
 const statusOptions = [
-  { value: "pending", label: "Pending", color: "bg-yellow-500/20 text-yellow-700" },
-  { value: "under_review", label: "Under Review", color: "bg-blue-500/20 text-blue-700" },
-  { value: "payment_pending", label: "Payment Pending", color: "bg-orange-500/20 text-orange-700" },
-  { value: "payment_done", label: "Payment Done", color: "bg-green-500/20 text-green-700" },
-  { value: "in_progress", label: "In Progress", color: "bg-purple-500/20 text-purple-700" },
-  { value: "in_delivery", label: "In Delivery", color: "bg-indigo-500/20 text-indigo-700" },
-  { value: "delivered", label: "Delivered", color: "bg-emerald-500/20 text-emerald-700" },
-  { value: "rejected", label: "Rejected", color: "bg-red-500/20 text-red-700" },
+  { value: "pending", label: "Pending", bgColor: "bg-amber-100", textColor: "text-amber-700", borderColor: "border-amber-200" },
+  { value: "under_review", label: "Under Review", bgColor: "bg-sky-100", textColor: "text-sky-700", borderColor: "border-sky-200" },
+  { value: "payment_pending", label: "Payment Pending", bgColor: "bg-orange-100", textColor: "text-orange-600", borderColor: "border-orange-200" },
+  { value: "payment_done", label: "Payment Done", bgColor: "bg-emerald-100", textColor: "text-emerald-700", borderColor: "border-emerald-200" },
+  { value: "in_progress", label: "In Progress", bgColor: "bg-violet-100", textColor: "text-violet-700", borderColor: "border-violet-200" },
+  { value: "in_delivery", label: "In Delivery", bgColor: "bg-cyan-100", textColor: "text-cyan-700", borderColor: "border-cyan-200" },
+  { value: "delivered", label: "Delivered", bgColor: "bg-green-100", textColor: "text-green-700", borderColor: "border-green-200" },
+  { value: "rejected", label: "Rejected", bgColor: "bg-rose-100", textColor: "text-rose-600", borderColor: "border-rose-200" },
 ];
 
 const emailTemplates = [
@@ -253,12 +253,17 @@ const AdminCustomOrders = () => {
     setIsDetailOpen(false);
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, showChevron = false) => {
     const option = statusOptions.find((o) => o.value === status);
     return (
-      <Badge className={`${option?.color || "bg-muted"} border-0`}>
+      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${option?.bgColor || "bg-muted"} ${option?.textColor || "text-foreground"} ${option?.borderColor || "border-border"}`}>
         {option?.label || status}
-      </Badge>
+        {showChevron && (
+          <svg className="w-3 h-3 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        )}
+      </span>
     );
   };
 
@@ -329,19 +334,33 @@ const AdminCustomOrders = () => {
                       value={request.status}
                       onValueChange={(value) => handleInlineStatusChange(request.id, value)}
                     >
-                      <SelectTrigger className="w-[140px] h-8">
+                      <SelectTrigger className="w-auto min-w-[150px] h-auto border-0 bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:hidden">
                         <SelectValue>
-                          {getStatusBadge(request.status)}
+                          {getStatusBadge(request.status, true)}
                         </SelectValue>
                       </SelectTrigger>
-                      <SelectContent>
-                        {statusOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            <Badge className={`${option.color} border-0`}>
-                              {option.label}
-                            </Badge>
-                          </SelectItem>
-                        ))}
+                      <SelectContent className="bg-amber-50/95 backdrop-blur-sm border-amber-200 rounded-xl p-1 min-w-[180px]">
+                        {statusOptions.map((option) => {
+                          const isSelected = request.status === option.value;
+                          return (
+                            <SelectItem 
+                              key={option.value} 
+                              value={option.value}
+                              className="rounded-lg px-3 py-2 cursor-pointer focus:bg-amber-100/50 data-[state=checked]:bg-transparent"
+                            >
+                              <div className="flex items-center gap-2">
+                                {isSelected && (
+                                  <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${option.bgColor} ${option.textColor} ${option.borderColor}`}>
+                                  {option.label}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </TableCell>
