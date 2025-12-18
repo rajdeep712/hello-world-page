@@ -27,18 +27,43 @@ const navLinks = [
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut, loading } = useAuth();
   const { isAdmin } = useAdmin();
 
+  const isHomePage = location.pathname === "/";
+
   useEffect(() => {
-    const handleScroll = () => {
+    // On non-home pages, always show navbar
+    if (!isHomePage) {
+      setIsVisible(true);
       setScrolled(window.scrollY > 50);
+      const handleScroll = () => {
+        setScrolled(window.scrollY > 50);
+      };
+      window.addEventListener("scroll", handleScroll);
+      return () => window.removeEventListener("scroll", handleScroll);
+    }
+
+    // On home page, hide initially and show when hero is 80% scrolled
+    setIsVisible(false);
+    
+    const handleScroll = () => {
+      const viewportHeight = window.innerHeight;
+      const scrollThreshold = viewportHeight * 0.8; // 80% of viewport height
+      
+      setScrolled(window.scrollY > 50);
+      setIsVisible(window.scrollY >= scrollThreshold);
     };
+
+    // Check initial scroll position
+    handleScroll();
+    
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isHomePage]);
 
   useEffect(() => {
     setIsOpen(false);
@@ -51,25 +76,28 @@ const Navigation = () => {
 
   return (
     <>
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-        className={`fixed z-50 inset-x-0 mx-auto transition-all duration-700 max-w-5xl w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] rounded-full ${
-          scrolled
-            ? "top-3 bg-parchment/80 backdrop-blur-md border border-border/50 shadow-soft"
-            : "top-6 bg-parchment/60 backdrop-blur-sm border border-border/30"
-        }`}
-      >
-        <nav className="px-4 md:px-6 py-2 flex items-center justify-between">
-          <Link to="/" className="flex items-center">
-            <motion.img 
-              src={logo} 
-              alt="Basho by Shivangi" 
-              className="h-8 md:h-10 w-auto"
-              whileHover={{ opacity: 0.8 }}
-              transition={{ duration: 0.3 }}
-            />
+      <AnimatePresence>
+        {isVisible && (
+          <motion.header
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -100, opacity: 0 }}
+            transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+            className={`fixed z-50 inset-x-0 mx-auto transition-all duration-700 max-w-5xl w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] rounded-full ${
+              scrolled
+                ? "top-3 bg-parchment/80 backdrop-blur-md border border-border/50 shadow-soft"
+                : "top-6 bg-parchment/60 backdrop-blur-sm border border-border/30"
+            }`}
+          >
+            <nav className="px-4 md:px-6 py-2 flex items-center justify-between">
+              <Link to="/" className="flex items-center">
+                <motion.img 
+                  src={logo} 
+                  alt="Basho by Shivangi" 
+                  className="h-8 md:h-10 w-auto"
+                  whileHover={{ opacity: 0.8 }}
+                  transition={{ duration: 0.3 }}
+                />
           </Link>
 
           {/* Desktop Navigation */}
@@ -212,7 +240,9 @@ const Navigation = () => {
             </button>
           </div>
         </nav>
-      </motion.header>
+          </motion.header>
+        )}
+      </AnimatePresence>
 
       {/* Mobile Menu */}
       <AnimatePresence>
