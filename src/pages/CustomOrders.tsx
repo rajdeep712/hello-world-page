@@ -18,20 +18,20 @@ import { useNavigate, Link } from "react-router-dom";
 import AddressForm from "@/components/AddressForm";
 
 // Gallery images
-import wabiSabiBowl from "@/assets/products/wabi-sabi-bowl.jpg";
-import kintsugiPlatter from "@/assets/products/kintsugi-platter.jpg";
-import ikebanaVase from "@/assets/products/ikebana-vase.jpg";
-import tokonameTeapot from "@/assets/products/tokoname-teapot.jpg";
-import matchaBowl from "@/assets/products/matcha-bowl.jpg";
-import sakeSet from "@/assets/products/sake-set.jpg";
+import cuppedHandsSculpture from "@/assets/products/cupped-hands-sculpture.jpg";
+import earthToneServingPlates from "@/assets/products/earth-tone-serving-plates.jpg";
+import organicEdgePlatters from "@/assets/products/organic-edge-platters.jpg";
+import forestGreenTeaSet from "@/assets/products/forest-green-tea-set.jpg";
+import minimalistCreamMugs from "@/assets/products/minimalist-cream-mugs.jpg";
+import rusticDuoMugSet from "@/assets/products/rustic-duo-mug-set.jpg";
 
 const pastWorkGallery = [
-  { image: wabiSabiBowl, title: "Custom Serving Bowl", description: "Wedding gift commission" },
-  { image: kintsugiPlatter, title: "Kintsugi Restoration", description: "Family heirloom repair" },
-  { image: ikebanaVase, title: "Custom Ikebana Vase", description: "Interior designer project" },
-  { image: tokonameTeapot, title: "Personalized Teapot", description: "Tea ceremony enthusiast" },
-  { image: matchaBowl, title: "Custom Matcha Set", description: "Restaurant commission" },
-  { image: sakeSet, title: "Anniversary Sake Set", description: "10th anniversary gift" },
+  { image: earthToneServingPlates, title: "Custom Serving Plates", description: "Wedding gift commission" },
+  { image: cuppedHandsSculpture, title: "Hand Sculpture", description: "Art collector project" },
+  { image: organicEdgePlatters, title: "Custom Platters", description: "Interior designer project" },
+  { image: forestGreenTeaSet, title: "Personalized Tea Set", description: "Tea ceremony enthusiast" },
+  { image: minimalistCreamMugs, title: "Custom Mug Set", description: "Restaurant commission" },
+  { image: rusticDuoMugSet, title: "Anniversary Mug Set", description: "10th anniversary gift" },
 ];
 
 const customizationOptions = [
