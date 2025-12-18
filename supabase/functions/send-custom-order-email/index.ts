@@ -272,7 +272,8 @@ serve(async (req: Request): Promise<Response> => {
       paymentLink
     );
 
-    // Send email
+    // Send email - Note: Change the "from" address to use your verified domain
+    // e.g., "Basho by Shivangi <hello@yourdomain.com>"
     const emailResponse = await resend.emails.send({
       from: "Basho by Shivangi <onboarding@resend.dev>",
       to: [order.email],
@@ -280,7 +281,22 @@ serve(async (req: Request): Promise<Response> => {
       html,
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    // Check if Resend returned an error
+    if (emailResponse.error) {
+      console.error("Resend error:", emailResponse.error);
+      return new Response(
+        JSON.stringify({ 
+          error: emailResponse.error.message,
+          hint: "You may need to verify a domain at resend.com/domains to send emails to customers."
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    console.log("Email sent successfully:", emailResponse.data);
 
     // Update the order status based on email type
     let newStatus = order.status;
