@@ -61,12 +61,12 @@ const Navigation = () => {
             : "top-6 bg-parchment/60 backdrop-blur-sm border border-border/30"
         }`}
       >
-        <nav className="px-6 md:px-8 py-3 flex items-center justify-between">
+        <nav className="px-4 md:px-6 py-2 flex items-center justify-between">
           <Link to="/" className="flex items-center">
             <motion.img 
               src={logo} 
               alt="Basho by Shivangi" 
-              className="h-12 md:h-14 w-auto"
+              className="h-8 md:h-10 w-auto"
               whileHover={{ opacity: 0.8 }}
               transition={{ duration: 0.3 }}
             />
