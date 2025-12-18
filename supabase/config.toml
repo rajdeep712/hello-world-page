@@ -11,3 +11,12 @@ verify_jwt = false
 
 [functions.send-auth-email]
 verify_jwt = false
+
+[functions.send-custom-order-email]
+verify_jwt = false
+
+[functions.create-custom-order-payment]
+verify_jwt = false
+
+[functions.verify-custom-order-payment]
+verify_jwt = false

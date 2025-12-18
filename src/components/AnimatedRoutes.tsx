@@ -8,6 +8,7 @@ import About from "@/pages/About";
 import Products from "@/pages/Products";
 import ProductDetail from "@/pages/ProductDetail";
 import CustomOrders from "@/pages/CustomOrders";
+import CustomOrderPayment from "@/pages/CustomOrderPayment";
 import Workshops from "@/pages/Workshops";
 import Studio from "@/pages/Studio";
 import Contact from "@/pages/Contact";
@@ -43,6 +44,7 @@ const AnimatedRoutes = () => {
           </ProtectedRoute>
         } />
         <Route path="/order-confirmation/:orderId" element={<PageTransition><OrderConfirmation /></PageTransition>} />
+        <Route path="/custom-order-payment/:orderId" element={<PageTransition><CustomOrderPayment /></PageTransition>} />
         <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
         <Route path="/profile" element={
           <ProtectedRoute>

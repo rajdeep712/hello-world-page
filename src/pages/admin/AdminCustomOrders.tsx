@@ -29,7 +29,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Eye, Trash2, Mail, Phone, Calendar, Ruler, FileText, Loader2, MapPin, Image, X } from "lucide-react";
+import { Eye, Trash2, Mail, Phone, Calendar, Ruler, FileText, Loader2, MapPin, Image, X, Send, CreditCard, Truck, Package } from "lucide-react";
 
 interface CustomOrderRequest {
   id: string;
@@ -50,12 +50,21 @@ interface CustomOrderRequest {
 
 const statusOptions = [
   { value: "pending", label: "Pending", color: "bg-yellow-500/20 text-yellow-700" },
-  { value: "reviewing", label: "Reviewing", color: "bg-blue-500/20 text-blue-700" },
-  { value: "quoted", label: "Quoted", color: "bg-purple-500/20 text-purple-700" },
-  { value: "approved", label: "Approved", color: "bg-green-500/20 text-green-700" },
-  { value: "in_progress", label: "In Progress", color: "bg-orange-500/20 text-orange-700" },
-  { value: "completed", label: "Completed", color: "bg-emerald-500/20 text-emerald-700" },
+  { value: "under_review", label: "Under Review", color: "bg-blue-500/20 text-blue-700" },
+  { value: "payment_pending", label: "Payment Pending", color: "bg-orange-500/20 text-orange-700" },
+  { value: "payment_done", label: "Payment Done", color: "bg-green-500/20 text-green-700" },
+  { value: "in_progress", label: "In Progress", color: "bg-purple-500/20 text-purple-700" },
+  { value: "in_delivery", label: "In Delivery", color: "bg-indigo-500/20 text-indigo-700" },
+  { value: "delivered", label: "Delivered", color: "bg-emerald-500/20 text-emerald-700" },
   { value: "rejected", label: "Rejected", color: "bg-red-500/20 text-red-700" },
+];
+
+const emailTemplates = [
+  { value: "payment_request", label: "Request Payment", icon: CreditCard, description: "Send payment link to customer" },
+  { value: "payment_confirmed", label: "Payment Confirmed", icon: Package, description: "Notify that production has started" },
+  { value: "in_delivery", label: "Out for Delivery", icon: Truck, description: "Product is on its way" },
+  { value: "delivered", label: "Delivered", icon: Package, description: "Order has been delivered" },
+  { value: "custom", label: "Custom Message", icon: Mail, description: "Send a custom email" },
 ];
 
 const AdminCustomOrders = () => {
@@ -68,6 +77,9 @@ const AdminCustomOrders = () => {
     estimated_price: "",
     estimated_delivery_date: "",
   });
+  const [emailType, setEmailType] = useState<string>("");
+  const [customMessage, setCustomMessage] = useState("");
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   const { data: requests, isLoading } = useQuery({
     queryKey: ["custom-order-requests"],
@@ -95,7 +107,6 @@ const AdminCustomOrders = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["custom-order-requests"] });
       toast.success("Request updated successfully");
-      setIsDetailOpen(false);
     },
     onError: () => {
       toast.error("Failed to update request");
@@ -122,19 +133,16 @@ const AdminCustomOrders = () => {
 
   const deleteImageMutation = useMutation({
     mutationFn: async ({ requestId, imageUrl, allImages }: { requestId: string; imageUrl: string; allImages: string[] }) => {
-      // Extract the file path from the URL
       const urlParts = imageUrl.split('/custom-order-images/');
       if (urlParts.length < 2) throw new Error('Invalid image URL');
       const filePath = urlParts[1];
 
-      // Delete from storage
       const { error: storageError } = await supabase.storage
         .from('custom-order-images')
         .remove([filePath]);
 
       if (storageError) throw storageError;
 
-      // Update the request to remove the image URL
       const updatedImages = allImages.filter(img => img !== imageUrl);
       const { error: dbError } = await supabase
         .from('custom_order_requests')
@@ -158,6 +166,61 @@ const AdminCustomOrders = () => {
     },
   });
 
+  const handleInlineStatusChange = async (requestId: string, newStatus: string) => {
+    updateMutation.mutate({ id: requestId, status: newStatus });
+  };
+
+  const sendEmail = async () => {
+    if (!selectedRequest || !emailType) return;
+
+    if (emailType === "payment_request" && !selectedRequest.estimated_price) {
+      toast.error("Please set an estimated price before sending payment request");
+      return;
+    }
+
+    if (emailType === "custom" && !customMessage.trim()) {
+      toast.error("Please enter a custom message");
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        `https://grdolasawzsrwuqhpheu.supabase.co/functions/v1/send-custom-order-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.session?.access_token}`,
+          },
+          body: JSON.stringify({
+            customOrderId: selectedRequest.id,
+            emailType,
+            customMessage: emailType === "custom" ? customMessage : undefined,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to send email");
+      }
+
+      toast.success("Email sent successfully");
+      setEmailType("");
+      setCustomMessage("");
+      queryClient.invalidateQueries({ queryKey: ["custom-order-requests"] });
+    } catch (error) {
+      console.error("Error sending email:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to send email");
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
   const openDetail = (request: CustomOrderRequest) => {
     setSelectedRequest(request);
     setEditData({
@@ -166,6 +229,8 @@ const AdminCustomOrders = () => {
       estimated_price: request.estimated_price?.toString() || "",
       estimated_delivery_date: request.estimated_delivery_date || "",
     });
+    setEmailType("");
+    setCustomMessage("");
     setIsDetailOpen(true);
   };
 
@@ -179,6 +244,7 @@ const AdminCustomOrders = () => {
       estimated_price: editData.estimated_price ? parseFloat(editData.estimated_price) : null,
       estimated_delivery_date: editData.estimated_delivery_date || null,
     });
+    setIsDetailOpen(false);
   };
 
   const getStatusBadge = (status: string) => {
@@ -211,9 +277,9 @@ const AdminCustomOrders = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: "Total Requests", value: requests?.length || 0 },
-          { label: "Pending", value: requests?.filter((r) => r.status === "pending").length || 0 },
-          { label: "In Progress", value: requests?.filter((r) => r.status === "in_progress").length || 0 },
-          { label: "Completed", value: requests?.filter((r) => r.status === "completed").length || 0 },
+          { label: "Pending", value: requests?.filter((r) => r.status === "pending" || r.status === "under_review").length || 0 },
+          { label: "In Progress", value: requests?.filter((r) => r.status === "in_progress" || r.status === "payment_done").length || 0 },
+          { label: "Delivered", value: requests?.filter((r) => r.status === "delivered").length || 0 },
         ].map((stat) => (
           <div key={stat.label} className="bg-card p-4 rounded-lg border border-border">
             <p className="text-sm text-muted-foreground">{stat.label}</p>
@@ -252,7 +318,27 @@ const AdminCustomOrders = () => {
                     </div>
                   </TableCell>
                   <TableCell className="capitalize">{request.preferred_size}</TableCell>
-                  <TableCell>{getStatusBadge(request.status)}</TableCell>
+                  <TableCell>
+                    <Select
+                      value={request.status}
+                      onValueChange={(value) => handleInlineStatusChange(request.id, value)}
+                    >
+                      <SelectTrigger className="w-[140px] h-8">
+                        <SelectValue>
+                          {getStatusBadge(request.status)}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {statusOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            <Badge className={`${option.color} border-0`}>
+                              {option.label}
+                            </Badge>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
                   <TableCell>
                     {request.estimated_price
                       ? `₹${request.estimated_price.toLocaleString()}`
@@ -412,6 +498,73 @@ const AdminCustomOrders = () => {
                 )}
               </div>
 
+              {/* Email Actions */}
+              <div className="border-t border-border pt-6 space-y-4">
+                <h3 className="font-medium text-foreground flex items-center gap-2">
+                  <Send className="h-4 w-4" />
+                  Send Email to Customer
+                </h3>
+                
+                <div className="grid gap-2">
+                  {emailTemplates.map((template) => (
+                    <div
+                      key={template.value}
+                      className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        emailType === template.value
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                      onClick={() => setEmailType(template.value)}
+                    >
+                      <template.icon className="h-5 w-5 text-primary" />
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{template.label}</p>
+                        <p className="text-xs text-muted-foreground">{template.description}</p>
+                      </div>
+                      <input
+                        type="radio"
+                        checked={emailType === template.value}
+                        onChange={() => setEmailType(template.value)}
+                        className="accent-primary"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {emailType === "custom" && (
+                  <Textarea
+                    value={customMessage}
+                    onChange={(e) => setCustomMessage(e.target.value)}
+                    placeholder="Enter your custom message..."
+                    rows={4}
+                  />
+                )}
+
+                {emailType === "payment_request" && !selectedRequest.estimated_price && (
+                  <p className="text-sm text-destructive">
+                    Please set an estimated price below before sending payment request.
+                  </p>
+                )}
+
+                <Button
+                  onClick={sendEmail}
+                  disabled={!emailType || isSendingEmail || (emailType === "payment_request" && !selectedRequest.estimated_price)}
+                  className="w-full"
+                >
+                  {isSendingEmail ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Send Email
+                    </>
+                  )}
+                </Button>
+              </div>
+
               {/* Admin Controls */}
               <div className="border-t border-border pt-6 space-y-4">
                 <h3 className="font-medium text-foreground">Admin Controls</h3>
@@ -457,33 +610,29 @@ const AdminCustomOrders = () => {
                     type="date"
                     value={editData.estimated_delivery_date}
                     onChange={(e) =>
-                      setEditData((prev) => ({
-                        ...prev,
-                        estimated_delivery_date: e.target.value,
-                      }))
+                      setEditData((prev) => ({ ...prev, estimated_delivery_date: e.target.value }))
                     }
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Admin Notes</Label>
+                  <Label>Admin Notes (visible to customer)</Label>
                   <Textarea
                     value={editData.admin_notes}
                     onChange={(e) =>
                       setEditData((prev) => ({ ...prev, admin_notes: e.target.value }))
                     }
-                    placeholder="Internal notes about this request..."
+                    placeholder="Add notes for the customer..."
                     rows={3}
                   />
                 </div>
 
-                <div className="flex gap-3 pt-2">
-                  <Button
-                    variant="terracotta"
-                    onClick={handleUpdate}
-                    disabled={updateMutation.isPending}
-                  >
-                    {updateMutation.isPending ? "Saving..." : "Save Changes"}
+                <div className="flex gap-3">
+                  <Button onClick={handleUpdate} disabled={updateMutation.isPending} className="flex-1">
+                    {updateMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : null}
+                    Save Changes
                   </Button>
                   <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
                     Cancel
