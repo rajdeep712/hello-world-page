@@ -267,10 +267,10 @@ export default function AddressForm({
             id="city"
             name="city"
             value={formData.city}
-            onChange={handleChange}
             placeholder="Auto-filled from pincode"
-            disabled={loading || fetchingPincode}
-            className={formData.city ? 'bg-muted/50' : ''}
+            disabled
+            readOnly
+            className="bg-muted/50"
           />
           {errors.city && <p className="text-xs text-destructive mt-1">{errors.city}</p>}
         </div>
@@ -281,10 +281,10 @@ export default function AddressForm({
             id="state"
             name="state"
             value={formData.state}
-            onChange={handleChange}
             placeholder="Auto-filled from pincode"
-            disabled={loading || fetchingPincode}
-            className={formData.state ? 'bg-muted/50' : ''}
+            disabled
+            readOnly
+            className="bg-muted/50"
           />
           {errors.state && <p className="text-xs text-destructive mt-1">{errors.state}</p>}
         </div>
