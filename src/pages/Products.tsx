@@ -32,6 +32,8 @@ import turquoiseGeometricMugs from "@/assets/products/turquoise-geometric-mugs.j
 import oceanBlueMugs from "@/assets/products/ocean-blue-mugs.jpg";
 import ceramicGraterPlates from "@/assets/products/ceramic-grater-plates.jpg";
 import cloudServingPlatters from "@/assets/products/cloud-serving-platters.jpg";
+import ribbedDualToneBowls from "@/assets/products/ribbed-dual-tone-bowls.jpg";
+import meadowFlowerMugs from "@/assets/products/meadow-flower-mugs.jpg";
 
 const productImages: Record<string, string> = {
   "Cupped Hands Sculpture": cuppedHandsSculpture,
@@ -52,6 +54,8 @@ const productImages: Record<string, string> = {
   "Ocean Blue Mugs": oceanBlueMugs,
   "Ceramic Grater Plates": ceramicGraterPlates,
   "Cloud Serving Platters": cloudServingPlatters,
+  "Ribbed Dual-Tone Bowls": ribbedDualToneBowls,
+  "Meadow Flower Mugs": meadowFlowerMugs,
 };
 
 const categories = ["All", "Tableware", "Artifacts"];

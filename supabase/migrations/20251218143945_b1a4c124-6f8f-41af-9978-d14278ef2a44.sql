@@ -1,0 +1,3 @@
+INSERT INTO products (name, description, price, category, image_url, in_stock, weight_kg, care_instructions) VALUES
+('Ribbed Dual-Tone Bowls', 'Beautifully textured bowls with ribbed exterior and dual-tone glazes in earthy combinations.', 1150, 'Tableware', 'ribbed-dual-tone-bowls.jpg', true, 0.5, 'Hand wash recommended. Microwave and dishwasher safe.'),
+('Meadow Flower Mugs', 'Whimsical mugs hand-painted with delicate meadow flowers in soft greens and red accents.', 650, 'Tableware', 'meadow-flower-mugs.jpg', true, 0.35, 'Hand wash recommended. Microwave safe.');
