@@ -3,31 +3,31 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import wabiSabiBowl from "@/assets/products/wabi-sabi-bowl.jpg";
-import teaCupSet from "@/assets/products/zen-tea-cup-set.jpg";
-import ikebanaVase from "@/assets/products/ikebana-vase.jpg";
+import forestGreenTeaSet from "@/assets/products/forest-green-tea-set.jpg";
+import earthToneServingPlates from "@/assets/products/earth-tone-serving-plates.jpg";
+import cuppedHandsSculpture from "@/assets/products/cupped-hands-sculpture.jpg";
 
 const products = [
   {
     title: "Tableware Collection",
     description: "Elegant dining pieces crafted for everyday rituals",
     category: "Ready-Made",
-    price: "From ₹1,200",
-    image: wabiSabiBowl,
+    price: "From ₹1,500",
+    image: earthToneServingPlates,
   },
   {
     title: "Custom Pottery",
     description: "Bespoke creations tailored to your vision",
     category: "Made-to-Order",
     price: "Custom Quote",
-    image: teaCupSet,
+    image: forestGreenTeaSet,
   },
   {
-    title: "Tea Ceremony Sets",
-    description: "Traditional Japanese-inspired tea ware",
+    title: "Artisan Sculptures",
+    description: "Unique decorative pieces for your space",
     category: "Specialty",
-    price: "From ₹2,500",
-    image: ikebanaVase,
+    price: "From ₹2,200",
+    image: cuppedHandsSculpture,
   },
 ];
 

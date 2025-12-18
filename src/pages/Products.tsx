@@ -14,35 +14,27 @@ import ProductSearch from "@/components/ProductSearch";
 import ProductFilters from "@/components/ProductFilters";
 
 // Product images
-import wabiSabiBowl from "@/assets/products/wabi-sabi-bowl.jpg";
-import zenTeaCupSet from "@/assets/products/zen-tea-cup-set.jpg";
-import rakuDinnerPlate from "@/assets/products/raku-dinner-plate.jpg";
-import kintsugiPlatter from "@/assets/products/kintsugi-platter.jpg";
-import tokonameTeapot from "@/assets/products/tokoname-teapot.jpg";
-import ikebanaVase from "@/assets/products/ikebana-vase.jpg";
-import matchaBowl from "@/assets/products/matcha-bowl.jpg";
-import sakeSet from "@/assets/products/sake-set.jpg";
-import incenseHolder from "@/assets/products/incense-holder.jpg";
-import budVase from "@/assets/products/bud-vase.jpg";
-import soupBowls from "@/assets/products/soup-bowls.jpg";
-import butterDish from "@/assets/products/butter-dish.jpg";
+import cuppedHandsSculpture from "@/assets/products/cupped-hands-sculpture.jpg";
+import earthToneServingPlates from "@/assets/products/earth-tone-serving-plates.jpg";
+import organicEdgePlatters from "@/assets/products/organic-edge-platters.jpg";
+import forestGreenTeaSet from "@/assets/products/forest-green-tea-set.jpg";
+import minimalistCreamMugs from "@/assets/products/minimalist-cream-mugs.jpg";
+import rusticDuoMugSet from "@/assets/products/rustic-duo-mug-set.jpg";
+import indigoPlanters from "@/assets/products/indigo-planters.jpg";
+import fortuneCookieKeepsakes from "@/assets/products/fortune-cookie-keepsakes.jpg";
 
 const productImages: Record<string, string> = {
-  "Wabi-Sabi Bowl": wabiSabiBowl,
-  "Zen Tea Cup Set": zenTeaCupSet,
-  "Raku Dinner Plate": rakuDinnerPlate,
-  "Kintsugi Serving Platter": kintsugiPlatter,
-  "Tokoname Tea Pot": tokonameTeapot,
-  "Ikebana Vase": ikebanaVase,
-  "Matcha Bowl": matchaBowl,
-  "Sake Set": sakeSet,
-  "Zen Incense Holder": incenseHolder,
-  "Bud Vase": budVase,
-  "Soup Bowl Set": soupBowls,
-  "Butter Dish": butterDish,
+  "Cupped Hands Sculpture": cuppedHandsSculpture,
+  "Earth Tone Serving Plates": earthToneServingPlates,
+  "Organic Edge Platters": organicEdgePlatters,
+  "Forest Green Tea Set": forestGreenTeaSet,
+  "Minimalist Cream Mugs": minimalistCreamMugs,
+  "Rustic Duo Mug Set": rusticDuoMugSet,
+  "Indigo Planters": indigoPlanters,
+  "Fortune Cookie Keepsakes": fortuneCookieKeepsakes,
 };
 
-const categories = ["All", "bowls", "cups", "vases", "plates", "platters", "teaware", "accessories", "tableware"];
+const categories = ["All", "Tableware", "Artifacts"];
 
 interface Product {
   id: string;

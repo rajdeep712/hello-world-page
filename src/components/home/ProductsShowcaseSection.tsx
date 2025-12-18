@@ -5,6 +5,27 @@ import { ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+// Product images
+import cuppedHandsSculpture from "@/assets/products/cupped-hands-sculpture.jpg";
+import earthToneServingPlates from "@/assets/products/earth-tone-serving-plates.jpg";
+import organicEdgePlatters from "@/assets/products/organic-edge-platters.jpg";
+import forestGreenTeaSet from "@/assets/products/forest-green-tea-set.jpg";
+import minimalistCreamMugs from "@/assets/products/minimalist-cream-mugs.jpg";
+import rusticDuoMugSet from "@/assets/products/rustic-duo-mug-set.jpg";
+import indigoPlanters from "@/assets/products/indigo-planters.jpg";
+import fortuneCookieKeepsakes from "@/assets/products/fortune-cookie-keepsakes.jpg";
+
+const productImages: Record<string, string> = {
+  "Cupped Hands Sculpture": cuppedHandsSculpture,
+  "Earth Tone Serving Plates": earthToneServingPlates,
+  "Organic Edge Platters": organicEdgePlatters,
+  "Forest Green Tea Set": forestGreenTeaSet,
+  "Minimalist Cream Mugs": minimalistCreamMugs,
+  "Rustic Duo Mug Set": rusticDuoMugSet,
+  "Indigo Planters": indigoPlanters,
+  "Fortune Cookie Keepsakes": fortuneCookieKeepsakes,
+};
+
 const ProductsShowcaseSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-15%" });
@@ -57,6 +78,7 @@ const ProductsShowcaseSection = () => {
               product={product} 
               index={index}
               isInView={isInView}
+              productImages={productImages}
             />
           ))}
         </div>
@@ -84,11 +106,13 @@ const ProductsShowcaseSection = () => {
 const ProductCard = ({ 
   product, 
   index, 
-  isInView 
+  isInView,
+  productImages
 }: { 
   product: any; 
   index: number; 
   isInView: boolean;
+  productImages: Record<string, string>;
 }) => {
   const cardRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -97,6 +121,7 @@ const ProductCard = ({
   });
 
   const imageY = useTransform(scrollYProgress, [0, 1], ["8%", "-8%"]);
+  const imageUrl = productImages[product.name] || product.image_url || '/placeholder.svg';
 
   return (
     <motion.div
@@ -117,7 +142,7 @@ const ProductCard = ({
         index % 2 === 1 ? 'lg:col-start-6' : ''
       }`}>
         <motion.img
-          src={product.image_url || '/placeholder.svg'}
+          src={imageUrl}
           alt={product.name}
           className="w-full h-[115%] object-cover"
           style={{ y: imageY }}

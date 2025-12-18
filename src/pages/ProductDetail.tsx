@@ -11,32 +11,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/useCart";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import wabiSabiBowl from "@/assets/products/wabi-sabi-bowl.jpg";
-import zenTeaCupSet from "@/assets/products/zen-tea-cup-set.jpg";
-import rakuDinnerPlate from "@/assets/products/raku-dinner-plate.jpg";
-import kintsugiPlatter from "@/assets/products/kintsugi-platter.jpg";
-import tokonameTeapot from "@/assets/products/tokoname-teapot.jpg";
-import ikebanaVase from "@/assets/products/ikebana-vase.jpg";
-import matchaBowl from "@/assets/products/matcha-bowl.jpg";
-import sakeSet from "@/assets/products/sake-set.jpg";
-import incenseHolder from "@/assets/products/incense-holder.jpg";
-import budVase from "@/assets/products/bud-vase.jpg";
-import soupBowls from "@/assets/products/soup-bowls.jpg";
-import butterDish from "@/assets/products/butter-dish.jpg";
+
+// Product images
+import cuppedHandsSculpture from "@/assets/products/cupped-hands-sculpture.jpg";
+import earthToneServingPlates from "@/assets/products/earth-tone-serving-plates.jpg";
+import organicEdgePlatters from "@/assets/products/organic-edge-platters.jpg";
+import forestGreenTeaSet from "@/assets/products/forest-green-tea-set.jpg";
+import minimalistCreamMugs from "@/assets/products/minimalist-cream-mugs.jpg";
+import rusticDuoMugSet from "@/assets/products/rustic-duo-mug-set.jpg";
+import indigoPlanters from "@/assets/products/indigo-planters.jpg";
+import fortuneCookieKeepsakes from "@/assets/products/fortune-cookie-keepsakes.jpg";
 
 const productImages: Record<string, string> = {
-  "Wabi-Sabi Bowl": wabiSabiBowl,
-  "Zen Tea Cup Set": zenTeaCupSet,
-  "Raku Dinner Plate": rakuDinnerPlate,
-  "Kintsugi Serving Platter": kintsugiPlatter,
-  "Tokoname Tea Pot": tokonameTeapot,
-  "Ikebana Vase": ikebanaVase,
-  "Matcha Bowl": matchaBowl,
-  "Sake Set": sakeSet,
-  "Zen Incense Holder": incenseHolder,
-  "Bud Vase": budVase,
-  "Soup Bowl Set": soupBowls,
-  "Butter Dish": butterDish,
+  "Cupped Hands Sculpture": cuppedHandsSculpture,
+  "Earth Tone Serving Plates": earthToneServingPlates,
+  "Organic Edge Platters": organicEdgePlatters,
+  "Forest Green Tea Set": forestGreenTeaSet,
+  "Minimalist Cream Mugs": minimalistCreamMugs,
+  "Rustic Duo Mug Set": rusticDuoMugSet,
+  "Indigo Planters": indigoPlanters,
+  "Fortune Cookie Keepsakes": fortuneCookieKeepsakes,
 };
 
 interface Product {
@@ -48,6 +42,7 @@ interface Product {
   image_url: string | null;
   in_stock: boolean;
   weight_kg: number | null;
+  care_instructions: string | null;
 }
 
 const ProductDetail = () => {
@@ -121,6 +116,11 @@ const ProductDetail = () => {
   }
 
   const imageUrl = productImages[product.name] || product.image_url;
+
+  // Parse care instructions from database
+  const careInstructions = product.care_instructions
+    ? product.care_instructions.split('•').map(s => s.trim()).filter(Boolean)
+    : ['Dishwasher safe (top rack recommended)', 'Microwave safe', 'Avoid sudden temperature changes', 'Hand wash for best preservation'];
 
   return (
     <>
@@ -265,10 +265,9 @@ const ProductDetail = () => {
                 <div className="mt-8 p-6 bg-card rounded-xl border border-border/50">
                   <h3 className="font-serif text-lg text-foreground mb-3">Care Instructions</h3>
                   <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li>• Dishwasher safe (top rack recommended)</li>
-                    <li>• Microwave safe</li>
-                    <li>• Avoid sudden temperature changes</li>
-                    <li>• Hand wash for best preservation</li>
+                    {careInstructions.map((instruction, index) => (
+                      <li key={index}>• {instruction}</li>
+                    ))}
                   </ul>
                 </div>
               </motion.div>
