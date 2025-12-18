@@ -7,11 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useState, useRef } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
-import { Upload, X, Clock, Palette, Ruler, Sparkles } from "lucide-react";
+import { Upload, X, Clock, Palette, Ruler, Sparkles, MapPin, Plus, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAddresses, Address, AddressFormData } from "@/hooks/useAddresses";
+import { useNavigate, Link } from "react-router-dom";
+import AddressForm from "@/components/AddressForm";
 
 // Gallery images
 import wabiSabiBowl from "@/assets/products/wabi-sabi-bowl.jpg";
@@ -38,18 +42,78 @@ const customizationOptions = [
 ];
 
 const CustomOrders = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const { addresses, loading: addressesLoading, addAddress, getDefaultAddress } = useAddresses();
+  
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
-    phone: "",
     size: "medium",
     usage: "",
     notes: "",
   });
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [showAddAddress, setShowAddAddress] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
   const [referenceImages, setReferenceImages] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Set default address when addresses load
+  useEffect(() => {
+    if (addresses.length > 0 && !selectedAddressId) {
+      const defaultAddr = getDefaultAddress();
+      if (defaultAddr) {
+        setSelectedAddressId(defaultAddr.id);
+      }
+    }
+  }, [addresses, selectedAddressId, getDefaultAddress]);
+
+  // Fetch profile name
+  useEffect(() => {
+    if (user) {
+      supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', user.id)
+        .single()
+        .then(({ data }) => {
+          if (data?.full_name) {
+            setFormData(prev => ({ ...prev, name: data.full_name }));
+          }
+        });
+    }
+  }, [user]);
+
+  const getSelectedAddress = (): Address | null => {
+    return addresses.find(a => a.id === selectedAddressId) || null;
+  };
+
+  const formatAddressString = (address: Address): string => {
+    const parts = [
+      address.street,
+      address.landmark,
+      address.city,
+      address.state,
+      address.pincode,
+    ].filter(Boolean);
+    return parts.join(', ');
+  };
+
+  const handleAddAddress = async (data: AddressFormData) => {
+    setSavingAddress(true);
+    const { data: newAddress, error } = await addAddress(data);
+    if (error) {
+      toast.error('Failed to add address');
+    } else {
+      toast.success('Address added');
+      setShowAddAddress(false);
+      if (newAddress) {
+        setSelectedAddressId(newAddress.id);
+      }
+    }
+    setSavingAddress(false);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -72,10 +136,23 @@ const CustomOrders = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.email || !formData.usage) {
+    if (!user) {
+      toast.error("Please sign in to submit a custom order request");
+      navigate('/auth?redirect=/products/custom');
+      return;
+    }
+
+    if (!formData.name || !formData.usage) {
       toast.error("Please fill in all required fields");
       return;
     }
+
+    if (!selectedAddressId) {
+      toast.error("Please select or add a delivery address");
+      return;
+    }
+
+    const selectedAddress = getSelectedAddress();
 
     setIsSubmitting(true);
     
@@ -83,19 +160,20 @@ const CustomOrders = () => {
       const { error } = await supabase
         .from("custom_order_requests")
         .insert({
-          user_id: user?.id || null,
+          user_id: user.id,
           name: formData.name.trim(),
-          email: formData.email.trim(),
-          phone: formData.phone.trim() || null,
+          email: user.email || '',
+          phone: selectedAddress?.phone || null,
           preferred_size: formData.size,
           usage_description: formData.usage.trim(),
           notes: formData.notes.trim() || null,
+          shipping_address: selectedAddress ? formatAddressString(selectedAddress) : null,
         });
 
       if (error) throw error;
       
       toast.success("Custom order request submitted! We'll contact you within 48 hours.");
-      setFormData({ name: "", email: "", phone: "", size: "medium", usage: "", notes: "" });
+      setFormData({ name: formData.name, size: "medium", usage: "", notes: "" });
       setReferenceImages([]);
     } catch (error) {
       console.error("Error submitting request:", error);
@@ -314,161 +392,235 @@ const CustomOrders = () => {
                 onSubmit={handleSubmit}
                 className="max-w-2xl mx-auto space-y-8"
               >
-                {/* Contact Info */}
-                <div className="grid sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Name *</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      placeholder="Your name"
-                      required
-                    />
+                {/* Login Required Notice */}
+                {!user && (
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-6 text-center">
+                    <p className="text-foreground mb-4">
+                      Please sign in to submit a custom order request
+                    </p>
+                    <Button variant="terracotta" asChild>
+                      <Link to="/auth?redirect=/products/custom">Sign In</Link>
+                    </Button>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="your@email.com"
-                      required
-                    />
-                  </div>
-                </div>
+                )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone (optional)</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    placeholder="+91 98765 43210"
-                  />
-                </div>
-
-                {/* Size Selection */}
-                <div className="space-y-3">
-                  <Label>Preferred Size</Label>
-                  <RadioGroup
-                    value={formData.size}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, size: value }))}
-                    className="flex flex-wrap gap-4"
-                  >
-                    {[
-                      { value: "small", label: "Small", desc: "Tea cups, small bowls" },
-                      { value: "medium", label: "Medium", desc: "Dinner plates, vases" },
-                      { value: "large", label: "Large", desc: "Platters, large pots" },
-                      { value: "custom", label: "Custom", desc: "Specific dimensions" },
-                    ].map((option) => (
-                      <div key={option.value} className="flex items-center space-x-2">
-                        <RadioGroupItem value={option.value} id={option.value} />
-                        <Label htmlFor={option.value} className="cursor-pointer">
-                          <span className="font-medium">{option.label}</span>
-                          <span className="text-xs text-muted-foreground ml-1">({option.desc})</span>
-                        </Label>
+                {user && (
+                  <>
+                    {/* Contact Info */}
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Name *</Label>
+                        <Input
+                          id="name"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          placeholder="Your name"
+                          required
+                        />
                       </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-
-                {/* Usage */}
-                <div className="space-y-2">
-                  <Label htmlFor="usage">Intended Usage *</Label>
-                  <Textarea
-                    id="usage"
-                    name="usage"
-                    value={formData.usage}
-                    onChange={handleInputChange}
-                    placeholder="How will you use this piece? (e.g., daily tea ceremony, serving ware for dinner parties, decorative display...)"
-                    rows={3}
-                    required
-                  />
-                </div>
-
-                {/* Reference Images */}
-                <div className="space-y-3">
-                  <Label>Reference Images (optional)</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Upload up to 5 images for inspiration
-                  </p>
-                  
-                  <div 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                  >
-                    <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-                    <p className="font-sans text-sm text-muted-foreground">
-                      Click to upload or drag and drop
-                    </p>
-                    <p className="font-sans text-xs text-muted-foreground mt-1">
-                      PNG, JPG up to 5MB each
-                    </p>
-                  </div>
-                  
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-
-                  {referenceImages.length > 0 && (
-                    <div className="flex flex-wrap gap-3 mt-4">
-                      {referenceImages.map((file, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={URL.createObjectURL(file)}
-                            alt={`Reference ${index + 1}`}
-                            className="w-20 h-20 object-cover rounded-lg border border-border"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute -top-2 -right-2 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={user.email || ''}
+                          disabled
+                          className="bg-muted"
+                        />
+                      </div>
                     </div>
-                  )}
-                </div>
 
-                {/* Additional Notes */}
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Additional Notes</Label>
-                  <Textarea
-                    id="notes"
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleInputChange}
-                    placeholder="Any specific colors, textures, inscriptions, or details you'd like..."
-                    rows={4}
-                  />
-                </div>
+                    {/* Delivery Address */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-primary" />
+                          Delivery Address *
+                        </Label>
+                        <Dialog open={showAddAddress} onOpenChange={setShowAddAddress}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Plus className="w-4 h-4 mr-1" />
+                              Add New
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Add New Address</DialogTitle>
+                            </DialogHeader>
+                            <AddressForm
+                              initialData={{ name: formData.name }}
+                              onSubmit={handleAddAddress}
+                              onCancel={() => setShowAddAddress(false)}
+                              loading={savingAddress}
+                            />
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                      
+                      {addressesLoading ? (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Loading addresses...
+                        </div>
+                      ) : addresses.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          No saved addresses. Please add a delivery address.
+                        </p>
+                      ) : (
+                        <RadioGroup
+                          value={selectedAddressId || ''}
+                          onValueChange={setSelectedAddressId}
+                          className="space-y-3"
+                        >
+                          {addresses.map((address) => (
+                            <div
+                              key={address.id}
+                              className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer transition-colors ${
+                                selectedAddressId === address.id 
+                                  ? 'border-primary bg-primary/5' 
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                              onClick={() => setSelectedAddressId(address.id)}
+                            >
+                              <RadioGroupItem value={address.id} id={`addr-${address.id}`} className="mt-1" />
+                              <label htmlFor={`addr-${address.id}`} className="flex-1 cursor-pointer">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-medium">{address.label}</span>
+                                  {address.is_default && (
+                                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Default</span>
+                                  )}
+                                </div>
+                                <p className="text-sm font-medium">{address.name} • {address.phone}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {formatAddressString(address)}
+                                </p>
+                              </label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      )}
+                    </div>
 
-                <Button 
-                  type="submit" 
-                  variant="terracotta" 
-                  size="lg" 
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Submitting..." : "Submit Request"}
-                </Button>
+                    {/* Size Selection */}
+                    <div className="space-y-3">
+                      <Label>Preferred Size</Label>
+                      <RadioGroup
+                        value={formData.size}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, size: value }))}
+                        className="flex flex-wrap gap-4"
+                      >
+                        {[
+                          { value: "small", label: "Small", desc: "Tea cups, small bowls" },
+                          { value: "medium", label: "Medium", desc: "Dinner plates, vases" },
+                          { value: "large", label: "Large", desc: "Platters, large pots" },
+                          { value: "custom", label: "Custom", desc: "Specific dimensions" },
+                        ].map((option) => (
+                          <div key={option.value} className="flex items-center space-x-2">
+                            <RadioGroupItem value={option.value} id={option.value} />
+                            <Label htmlFor={option.value} className="cursor-pointer">
+                              <span className="font-medium">{option.label}</span>
+                              <span className="text-xs text-muted-foreground ml-1">({option.desc})</span>
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </div>
 
-                <p className="text-center text-sm text-muted-foreground">
-                  We'll respond within 48 hours with a quote and timeline
-                </p>
+                    {/* Usage */}
+                    <div className="space-y-2">
+                      <Label htmlFor="usage">Intended Usage *</Label>
+                      <Textarea
+                        id="usage"
+                        name="usage"
+                        value={formData.usage}
+                        onChange={handleInputChange}
+                        placeholder="How will you use this piece? (e.g., daily tea ceremony, serving ware for dinner parties, decorative display...)"
+                        rows={3}
+                        required
+                      />
+                    </div>
+
+                    {/* Reference Images */}
+                    <div className="space-y-3">
+                      <Label>Reference Images (optional)</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Upload up to 5 images for inspiration
+                      </p>
+                      
+                      <div 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                      >
+                        <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                        <p className="font-sans text-sm text-muted-foreground">
+                          Click to upload or drag and drop
+                        </p>
+                        <p className="font-sans text-xs text-muted-foreground mt-1">
+                          PNG, JPG up to 5MB each
+                        </p>
+                      </div>
+                      
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+
+                      {referenceImages.length > 0 && (
+                        <div className="flex flex-wrap gap-3 mt-4">
+                          {referenceImages.map((file, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={`Reference ${index + 1}`}
+                                className="w-20 h-20 object-cover rounded-lg border border-border"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                className="absolute -top-2 -right-2 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Additional Notes */}
+                    <div className="space-y-2">
+                      <Label htmlFor="notes">Additional Notes</Label>
+                      <Textarea
+                        id="notes"
+                        name="notes"
+                        value={formData.notes}
+                        onChange={handleInputChange}
+                        placeholder="Any specific colors, textures, inscriptions, or details you'd like..."
+                        rows={4}
+                      />
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      variant="terracotta" 
+                      size="lg" 
+                      className="w-full"
+                      disabled={isSubmitting || !selectedAddressId}
+                    >
+                      {isSubmitting ? "Submitting..." : "Submit Request"}
+                    </Button>
+
+                    <p className="text-center text-sm text-muted-foreground">
+                      We'll respond within 48 hours with a quote and timeline
+                    </p>
+                  </>
+                )}
               </motion.form>
             </div>
           </section>
