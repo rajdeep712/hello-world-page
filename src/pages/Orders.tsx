@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Package, ChevronDown, ChevronUp, Palette } from 'lucide-react';
+import { Package, ChevronDown, ChevronUp, Palette, Sparkles, Calendar, Clock, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
 
 interface OrderItem {
   id: string;
@@ -51,13 +52,35 @@ interface CustomOrder {
   reference_images: string[] | null;
 }
 
+interface ExperienceBooking {
+  id: string;
+  experience_type: string;
+  booking_date: string;
+  time_slot: string;
+  guests: number;
+  notes: string | null;
+  total_amount: number;
+  payment_status: string;
+  booking_status: string;
+  created_at: string;
+}
+
+const experienceNames: Record<string, string> = {
+  couple: 'Couple Pottery Dates',
+  birthday: 'Birthday Sessions',
+  farm: 'Farm & Garden Mini Parties',
+  studio: 'Studio-Based Experiences'
+};
+
 export default function Orders() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [customOrders, setCustomOrders] = useState<CustomOrder[]>([]);
+  const [experienceBookings, setExperienceBookings] = useState<ExperienceBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [expandedCustomOrder, setExpandedCustomOrder] = useState<string | null>(null);
+  const [expandedExperience, setExpandedExperience] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -68,7 +91,7 @@ export default function Orders() {
   const fetchAllOrders = async () => {
     if (!user) return;
 
-    const [ordersResult, customOrdersResult] = await Promise.all([
+    const [ordersResult, customOrdersResult, experiencesResult] = await Promise.all([
       supabase
         .from('orders')
         .select(`
@@ -96,7 +119,12 @@ export default function Orders() {
         .from('custom_order_requests')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('experience_bookings')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('booking_date', { ascending: false })
     ]);
 
     if (ordersResult.error) {
@@ -111,6 +139,12 @@ export default function Orders() {
       setCustomOrders(customOrdersResult.data || []);
     }
 
+    if (experiencesResult.error) {
+      console.error('Error fetching experiences:', experiencesResult.error);
+    } else {
+      setExperienceBookings(experiencesResult.data || []);
+    }
+
     setLoading(false);
   };
 
@@ -120,6 +154,7 @@ export default function Orders() {
       case 'confirmed':
       case 'delivered':
       case 'payment_done':
+      case 'completed':
         return 'bg-green-100 text-green-800';
       case 'pending':
       case 'under_review':
@@ -151,7 +186,7 @@ export default function Orders() {
     return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
-  const hasNoOrders = orders.length === 0 && customOrders.length === 0;
+  const hasNoOrders = orders.length === 0 && customOrders.length === 0 && experienceBookings.length === 0;
 
   return (
     <>
@@ -186,14 +221,18 @@ export default function Orders() {
               </Card>
             ) : (
               <Tabs defaultValue="regular" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsList className="grid w-full grid-cols-3 mb-6">
                   <TabsTrigger value="regular" className="flex items-center gap-2">
                     <Package className="w-4 h-4" />
-                    Regular Orders ({orders.length})
+                    Orders ({orders.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="experiences" className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    Experiences ({experienceBookings.length})
                   </TabsTrigger>
                   <TabsTrigger value="custom" className="flex items-center gap-2">
                     <Palette className="w-4 h-4" />
-                    Custom Orders ({customOrders.length})
+                    Custom ({customOrders.length})
                   </TabsTrigger>
                 </TabsList>
 
@@ -281,6 +320,91 @@ export default function Orders() {
                                   <Badge variant="outline" className={getStatusColor(order.payment_status)}>
                                     {order.payment_status || 'Pending'}
                                   </Badge>
+                                </div>
+                              </div>
+                            </CardContent>
+                          )}
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="experiences">
+                  {experienceBookings.length === 0 ? (
+                    <Card>
+                      <CardContent className="py-12 text-center">
+                        <Sparkles className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground">No experience bookings yet</p>
+                        <Link to="/experiences" className="mt-4 inline-block">
+                          <Button variant="outline">Book an Experience</Button>
+                        </Link>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="space-y-4">
+                      {experienceBookings.map((booking) => (
+                        <Card key={booking.id}>
+                          <CardHeader 
+                            className="cursor-pointer"
+                            onClick={() => setExpandedExperience(expandedExperience === booking.id ? null : booking.id)}
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                              <div className="space-y-1">
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                  <Sparkles className="w-5 h-5 text-primary" />
+                                  {experienceNames[booking.experience_type] || booking.experience_type}
+                                  {expandedExperience === booking.id ? (
+                                    <ChevronUp className="w-5 h-5" />
+                                  ) : (
+                                    <ChevronDown className="w-5 h-5" />
+                                  )}
+                                </CardTitle>
+                                <p className="text-sm text-muted-foreground">{format(new Date(booking.booking_date), 'PPP')}</p>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <Badge className={getStatusColor(booking.booking_status)}>
+                                  {formatStatus(booking.booking_status)}
+                                </Badge>
+                                <span className="font-medium">₹{booking.total_amount.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          
+                          {expandedExperience === booking.id && (
+                            <CardContent className="border-t">
+                              <div className="pt-4 space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                                    <span>{format(new Date(booking.booking_date), 'PPP')}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="h-4 w-4 text-muted-foreground" />
+                                    <span>{booking.time_slot}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Users className="h-4 w-4 text-muted-foreground" />
+                                    <span>{booking.guests} {booking.guests === 1 ? 'guest' : 'guests'}</span>
+                                  </div>
+                                </div>
+
+                                {booking.notes && (
+                                  <div>
+                                    <h4 className="font-medium text-sm text-muted-foreground">Notes</h4>
+                                    <p className="text-sm">{booking.notes}</p>
+                                  </div>
+                                )}
+
+                                <div className="flex items-center gap-2 text-sm border-t pt-3">
+                                  <span className="text-muted-foreground">Payment:</span>
+                                  <Badge variant="outline" className={getStatusColor(booking.payment_status)}>
+                                    {formatStatus(booking.payment_status)}
+                                  </Badge>
+                                </div>
+
+                                <div className="text-xs text-muted-foreground">
+                                  Booked on {format(new Date(booking.created_at), 'PPp')}
                                 </div>
                               </div>
                             </CardContent>

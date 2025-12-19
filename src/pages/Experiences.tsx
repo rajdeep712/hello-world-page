@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
-import { Calendar, Clock, Users, Heart, Cake, TreePine, Palette } from "lucide-react";
+import { Calendar, Clock, Users, Heart, Cake, TreePine, Palette, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,13 +11,23 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Helmet } from "react-helmet-async";
+import { Link, useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import ExperiencesFAQ from "@/components/home/ExperiencesFAQ";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 import coupleImage from "@/assets/workshops/couple-pottery-date.jpg";
 import kidsImage from "@/assets/workshops/kids-clay-play.jpg";
 import studioImage from "@/assets/studio/studio-interior.jpg";
 import handsImage from "@/assets/hero/pottery-hands-clay.jpg";
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 interface Experience {
   id: string;
@@ -28,6 +37,7 @@ interface Experience {
   includes: string[];
   duration: string;
   price: string;
+  priceValue: number;
   image: string;
   icon: React.ReactNode;
 }
@@ -41,6 +51,7 @@ const experiences: Experience[] = [
     includes: ["Private session for two", "Guided assistance", "Keepsake piece to take home", "Refreshments"],
     duration: "90 minutes",
     price: "₹3,500 per couple",
+    priceValue: 3500,
     image: coupleImage,
     icon: <Heart className="w-5 h-5" />
   },
@@ -52,6 +63,7 @@ const experiences: Experience[] = [
     includes: ["Small group celebration (up to 8)", "Customizable themes", "Take-home pieces", "Optional decoration & setup"],
     duration: "2 hours",
     price: "₹12,000 onwards",
+    priceValue: 12000,
     image: kidsImage,
     icon: <Cake className="w-5 h-5" />
   },
@@ -63,6 +75,7 @@ const experiences: Experience[] = [
     includes: ["Outdoor setting", "Small private groups (6-12)", "All materials provided", "Refreshments & ambiance"],
     duration: "2-3 hours",
     price: "₹15,000 onwards",
+    priceValue: 15000,
     image: studioImage,
     icon: <TreePine className="w-5 h-5" />
   },
@@ -74,6 +87,7 @@ const experiences: Experience[] = [
     includes: ["Full studio access", "Personalized guidance", "Materials & firing", "Peaceful, creative atmosphere"],
     duration: "Flexible",
     price: "₹2,500 per person",
+    priceValue: 2500,
     image: handsImage,
     icon: <Palette className="w-5 h-5" />
   }
@@ -164,6 +178,9 @@ const ExperienceCard = ({ experience, index }: { experience: Experience; index: 
 const BookingSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
   const [selectedExperience, setSelectedExperience] = useState("");
   const [date, setDate] = useState<Date>();
   const [timeSlot, setTimeSlot] = useState("");
@@ -171,28 +188,152 @@ const BookingSection = () => {
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const selectedExp = experiences.find(e => e.id === selectedExperience);
+  const totalAmount = selectedExp 
+    ? selectedExp.id === 'studio' 
+      ? selectedExp.priceValue * parseInt(guests || '1')
+      : selectedExp.priceValue
+    : 0;
+
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      toast.error("Please sign in to book an experience");
+      navigate('/auth');
+      return;
+    }
+
     if (!selectedExperience || !date || !timeSlot || !guests) {
       toast.error("Please fill in all required fields");
       return;
     }
 
     setIsSubmitting(true);
-    
-    // Simulate submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast.success("We've received your booking request. We'll be in touch soon.");
-    
-    // Reset form
-    setSelectedExperience("");
-    setDate(undefined);
-    setTimeSlot("");
-    setGuests("");
-    setNotes("");
-    setIsSubmitting(false);
+
+    try {
+      // Create booking record first
+      const { data: booking, error: bookingError } = await supabase
+        .from('experience_bookings')
+        .insert({
+          user_id: user.id,
+          experience_type: selectedExperience,
+          booking_date: format(date, 'yyyy-MM-dd'),
+          time_slot: timeSlot,
+          guests: parseInt(guests),
+          notes: notes || null,
+          total_amount: totalAmount,
+          payment_status: 'pending',
+          booking_status: 'confirmed'
+        })
+        .select()
+        .single();
+
+      if (bookingError) throw bookingError;
+
+      // Load Razorpay
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        throw new Error('Failed to load payment gateway');
+      }
+
+      // Create Razorpay order
+      const { data: orderData, error: orderError } = await supabase.functions.invoke(
+        'create-razorpay-order',
+        {
+          body: {
+            amount: totalAmount,
+            currency: 'INR',
+            receipt: `exp_${booking.id.substring(0, 8)}`,
+            notes: {
+              booking_id: booking.id,
+              experience_type: selectedExperience
+            }
+          }
+        }
+      );
+
+      if (orderError) throw orderError;
+
+      // Update booking with razorpay order id
+      await supabase
+        .from('experience_bookings')
+        .update({ razorpay_order_id: orderData.orderId })
+        .eq('id', booking.id);
+
+      // Open Razorpay checkout
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'Basho by Shivangi',
+        description: `${selectedExp?.title} - ${format(date, 'PPP')} at ${timeSlot}`,
+        order_id: orderData.orderId,
+        handler: async (response: any) => {
+          try {
+            const { error: verifyError } = await supabase.functions.invoke(
+              'verify-experience-payment',
+              {
+                body: {
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  booking_id: booking.id
+                }
+              }
+            );
+
+            if (verifyError) throw verifyError;
+
+            toast.success("Booking confirmed! We'll see you soon.");
+            setSelectedExperience("");
+            setDate(undefined);
+            setTimeSlot("");
+            setGuests("");
+            setNotes("");
+            navigate('/orders');
+          } catch (error) {
+            console.error('Payment verification error:', error);
+            toast.error('Payment verification failed. Please contact support.');
+          }
+        },
+        prefill: {
+          email: user.email
+        },
+        theme: {
+          color: '#B5651D'
+        },
+        modal: {
+          ondismiss: () => {
+            toast.info('Payment cancelled');
+            setIsSubmitting(false);
+          }
+        }
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+
+    } catch (error) {
+      console.error('Booking error:', error);
+      toast.error('Failed to process booking. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -223,6 +364,21 @@ const BookingSection = () => {
           </motion.h2>
         </div>
 
+        {!user && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.35 }}
+            className="bg-muted/50 border border-border rounded-lg p-6 mb-8 text-center"
+          >
+            <LogIn className="w-8 h-8 mx-auto text-muted-foreground mb-3" />
+            <p className="text-muted-foreground mb-4">Please sign in to book an experience</p>
+            <Link to="/auth">
+              <Button variant="outline">Sign In</Button>
+            </Link>
+          </motion.div>
+        )}
+
         <motion.form
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -240,7 +396,7 @@ const BookingSection = () => {
               <SelectContent>
                 {experiences.map((exp) => (
                   <SelectItem key={exp.id} value={exp.id}>
-                    {exp.title}
+                    {exp.title} - {exp.price}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -324,12 +480,24 @@ const BookingSection = () => {
             />
           </div>
 
+          {/* Total Amount */}
+          {selectedExperience && guests && (
+            <div className="bg-muted/30 rounded-lg p-4 border border-border/40">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Total Amount</span>
+                <span className="font-serif text-2xl text-deep-clay">
+                  ₹{totalAmount.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          )}
+
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !user}
             className="w-full py-6 text-sm tracking-widest uppercase font-sans"
           >
-            {isSubmitting ? "Sending..." : "Book Experience"}
+            {isSubmitting ? "Processing..." : user ? "Book & Pay" : "Sign In to Book"}
           </Button>
         </motion.form>
       </div>
@@ -411,6 +579,9 @@ const Experiences = () => {
 
       {/* Booking Section */}
       <BookingSection />
+
+      {/* FAQ Section */}
+      <ExperiencesFAQ />
 
       <Footer />
     </>

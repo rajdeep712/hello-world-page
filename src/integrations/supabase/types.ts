@@ -211,6 +211,57 @@ export type Database = {
         }
         Relationships: []
       }
+      experience_bookings: {
+        Row: {
+          booking_date: string
+          booking_status: string
+          created_at: string
+          experience_type: string
+          guests: number
+          id: string
+          notes: string | null
+          payment_status: string
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          time_slot: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_date: string
+          booking_status?: string
+          created_at?: string
+          experience_type: string
+          guests?: number
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          time_slot: string
+          total_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_date?: string
+          booking_status?: string
+          created_at?: string
+          experience_type?: string
+          guests?: number
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          time_slot?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string | null
@@ -524,6 +575,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      update_expired_experience_bookings: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
