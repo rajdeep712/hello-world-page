@@ -56,20 +56,54 @@ export default function Profile() {
     setProfileLoading(false);
   };
 
+  const isPhoneSet = !!profile?.phone && profile.phone.length === 10;
+
+  const validatePhone = (phone: string): string | null => {
+    if (!phone) return null; // Empty is allowed
+    if (!/^\d{10}$/.test(phone)) {
+      return 'Phone number must be exactly 10 digits';
+    }
+    return null;
+  };
+
   const handleSaveProfile = async () => {
     if (!user) return;
     
+    // Client-side phone validation
+    const phoneError = validatePhone(profileForm.phone);
+    if (phoneError) {
+      toast.error(phoneError);
+      return;
+    }
+    
     setSavingProfile(true);
+    
+    // Only update phone if it's not already set
+    const updateData: { full_name: string; phone?: string } = { 
+      full_name: profileForm.full_name 
+    };
+    
+    if (!isPhoneSet && profileForm.phone) {
+      updateData.phone = profileForm.phone;
+    }
+    
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: profileForm.full_name, phone: profileForm.phone })
+      .update(updateData)
       .eq('user_id', user.id);
 
     if (error) {
-      toast.error('Failed to update profile');
+      if (error.message.includes('Phone number')) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to update profile');
+      }
     } else {
       toast.success('Profile updated');
-      setProfile(profileForm);
+      setProfile({ 
+        full_name: profileForm.full_name, 
+        phone: isPhoneSet ? profile.phone : profileForm.phone 
+      });
       setEditingProfile(false);
     }
     setSavingProfile(false);
@@ -278,14 +312,26 @@ export default function Profile() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="phone" className="text-sm font-sans text-muted-foreground">Phone Number</Label>
+                        <Label htmlFor="phone" className="text-sm font-sans text-muted-foreground">
+                          Phone Number
+                          {isPhoneSet && (
+                            <span className="ml-2 text-xs text-muted-foreground/70">(cannot be changed)</span>
+                          )}
+                        </Label>
                         <Input
                           id="phone"
-                          value={profileForm.phone}
-                          onChange={(e) => setProfileForm(prev => ({ ...prev, phone: e.target.value }))}
+                          value={isPhoneSet ? profile.phone : profileForm.phone}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            setProfileForm(prev => ({ ...prev, phone: value }));
+                          }}
                           placeholder="10-digit mobile number"
-                          className="bg-background border-border/50 focus:border-primary"
+                          disabled={isPhoneSet}
+                          className={`bg-background border-border/50 focus:border-primary ${isPhoneSet ? 'opacity-60 cursor-not-allowed' : ''}`}
                         />
+                        {!isPhoneSet && profileForm.phone && profileForm.phone.length !== 10 && (
+                          <p className="text-xs text-destructive">Must be exactly 10 digits</p>
+                        )}
                       </div>
                       <div className="flex gap-3 pt-2">
                         <Button onClick={handleSaveProfile} disabled={savingProfile} className="flex-1">
