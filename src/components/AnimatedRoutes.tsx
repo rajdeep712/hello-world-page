@@ -11,6 +11,7 @@ import CustomOrders from "@/pages/CustomOrders";
 import CustomOrderPayment from "@/pages/CustomOrderPayment";
 import Workshops from "@/pages/Workshops";
 import Experiences from "@/pages/Experiences";
+import ExperienceConfirmation from "@/pages/ExperienceConfirmation";
 import Studio from "@/pages/Studio";
 import Contact from "@/pages/Contact";
 import Cart from "@/pages/Cart";
@@ -46,6 +47,11 @@ const AnimatedRoutes = () => {
           </ProtectedRoute>
         } />
         <Route path="/order-confirmation/:orderId" element={<PageTransition><OrderConfirmation /></PageTransition>} />
+        <Route path="/experience-confirmation/:bookingId" element={
+          <ProtectedRoute>
+            <PageTransition><ExperienceConfirmation /></PageTransition>
+          </ProtectedRoute>
+        } />
         <Route path="/custom-order-payment/:orderId" element={<PageTransition><CustomOrderPayment /></PageTransition>} />
         <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
         <Route path="/profile" element={

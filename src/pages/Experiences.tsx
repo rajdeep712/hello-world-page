@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Calendar, Clock, Users, Heart, Cake, TreePine, Palette, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ExperiencesFAQ from "@/components/home/ExperiencesFAQ";
+import PaymentProcessingOverlay from "@/components/PaymentProcessingOverlay";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -187,6 +188,7 @@ const BookingSection = () => {
   const [guests, setGuests] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'processing' | 'verifying' | 'success' | null>(null);
 
   const selectedExp = experiences.find(e => e.id === selectedExperience);
   const totalAmount = selectedExp 
@@ -284,6 +286,7 @@ const BookingSection = () => {
         description: `${selectedExp?.title} - ${format(date, 'PPP')} at ${timeSlot}`,
         order_id: orderData.orderId,
         handler: async (response: any) => {
+          setPaymentStatus('verifying');
           try {
             const { error: verifyError } = await supabase.functions.invoke(
               'verify-experience-payment',
@@ -299,15 +302,13 @@ const BookingSection = () => {
 
             if (verifyError) throw verifyError;
 
-            toast.success("Booking confirmed! We'll see you soon.");
-            setSelectedExperience("");
-            setDate(undefined);
-            setTimeSlot("");
-            setGuests("");
-            setNotes("");
-            navigate('/orders');
+            setPaymentStatus('success');
+            setTimeout(() => {
+              navigate(`/experience-confirmation/${booking.id}`);
+            }, 1500);
           } catch (error) {
             console.error('Payment verification error:', error);
+            setPaymentStatus(null);
             toast.error('Payment verification failed. Please contact support.');
           }
         },
@@ -321,6 +322,7 @@ const BookingSection = () => {
           ondismiss: () => {
             toast.info('Payment cancelled');
             setIsSubmitting(false);
+            setPaymentStatus(null);
           }
         }
       };
@@ -337,7 +339,11 @@ const BookingSection = () => {
   };
 
   return (
-    <motion.section
+    <>
+      <AnimatePresence>
+        {paymentStatus && <PaymentProcessingOverlay status={paymentStatus} />}
+      </AnimatePresence>
+      <motion.section
       ref={ref}
       initial={{ opacity: 0 }}
       animate={isInView ? { opacity: 1 } : {}}
@@ -502,6 +508,7 @@ const BookingSection = () => {
         </motion.form>
       </div>
     </motion.section>
+    </>
   );
 };
 

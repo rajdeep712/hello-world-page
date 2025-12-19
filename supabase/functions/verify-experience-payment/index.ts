@@ -93,6 +93,40 @@ serve(async (req) => {
 
     console.log('Booking updated successfully:', booking.id);
 
+    // Send confirmation email in background
+    try {
+      console.log('Sending confirmation email to:', user.email);
+      const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-experience-confirmation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({
+          email: user.email,
+          booking: {
+            id: booking.id,
+            experience_type: booking.experience_type,
+            booking_date: booking.booking_date,
+            time_slot: booking.time_slot,
+            guests: booking.guests,
+            total_amount: booking.total_amount,
+            notes: booking.notes
+          }
+        }),
+      });
+      
+      if (!emailResponse.ok) {
+        const errorText = await emailResponse.text();
+        console.error('Failed to send confirmation email:', errorText);
+      } else {
+        console.log('Confirmation email sent successfully');
+      }
+    } catch (emailError) {
+      console.error('Error sending confirmation email:', emailError);
+      // Don't fail the payment verification if email fails
+    }
+
     return new Response(JSON.stringify({ 
       success: true, 
       booking 
