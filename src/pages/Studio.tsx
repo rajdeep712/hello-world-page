@@ -36,7 +36,7 @@ const Studio = () => {
           {/* A. Hero / Studio Introduction */}
           <section 
             ref={heroRef}
-            className="py-20 md:py-28 bg-gradient-to-b from-sand to-background"
+            className="py-12 md:py-16 bg-gradient-to-b from-sand to-background"
           >
             <div className="container px-6">
               <motion.div
@@ -62,10 +62,10 @@ const Studio = () => {
           {/* A. Studio Story & Philosophy */}
           <section 
             ref={storyRef}
-            className="py-20 md:py-28 bg-background"
+            className="py-12 md:py-16 bg-background"
           >
             <div className="container px-6">
-              <div className="grid lg:grid-cols-2 gap-16 items-center">
+              <div className="grid lg:grid-cols-2 gap-10 items-center">
                 {/* Story Content */}
                 <motion.div
                   initial={{ opacity: 0, x: -40 }}
@@ -160,16 +160,16 @@ const Studio = () => {
           </section>
 
           {/* B. Visiting Information & C. Location */}
-          <section className="py-20 md:py-28 bg-background">
+          <section className="py-12 md:py-16 bg-background">
             <div className="container px-6">
-              <div className="grid lg:grid-cols-2 gap-16">
+              <div className="grid lg:grid-cols-2 gap-10">
                 {/* Info */}
                 <motion.div
                   initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6 }}
-                  className="space-y-10"
+                  className="space-y-6"
                 >
                   <div>
                     <span className="font-sans text-xs tracking-[0.3em] uppercase text-terracotta">
@@ -180,7 +180,7 @@ const Studio = () => {
                     </h2>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <div className="flex items-start gap-4 p-4 bg-card rounded-sm border border-border/50">
                       <MapPin className="w-5 h-5 text-terracotta mt-0.5 flex-shrink-0" />
                       <div>
@@ -219,9 +219,8 @@ const Studio = () => {
                     </div>
                   </div>
 
-                  {/* What to Expect */}
-                  <div className="pt-6 border-t border-border">
-                    <h3 className="font-serif text-xl text-deep-clay mb-4">
+                  <div className="pt-4 border-t border-border">
+                    <h3 className="font-serif text-xl text-deep-clay mb-3">
                       What Visitors Can Expect
                     </h3>
                     <ul className="space-y-3">
@@ -240,9 +239,8 @@ const Studio = () => {
                     </ul>
                   </div>
 
-                  {/* Connect */}
-                  <div className="pt-6 border-t border-border">
-                    <h3 className="font-serif text-xl text-deep-clay mb-4">
+                  <div className="pt-4 border-t border-border">
+                    <h3 className="font-serif text-xl text-deep-clay mb-3">
                       Get in Touch
                     </h3>
                     <div className="flex flex-wrap gap-4">
@@ -301,14 +299,13 @@ const Studio = () => {
             </div>
           </section>
 
-          {/* D. Studio Policies */}
-          <section className="py-20 md:py-28 bg-card">
+          <section className="py-12 md:py-16 bg-card">
             <div className="container px-6">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="text-center mb-16"
+                className="text-center mb-10"
               >
                 <span className="font-sans text-xs tracking-[0.3em] uppercase text-terracotta">
                   Before You Visit
@@ -382,7 +379,7 @@ const Studio = () => {
           </section>
 
           {/* E. CTA Section */}
-          <section className="py-20 md:py-28 bg-deep-clay text-cream">
+          <section className="py-12 md:py-16 bg-deep-clay text-cream">
             <div className="container px-6">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -393,15 +390,15 @@ const Studio = () => {
                 <span className="font-sans text-xs tracking-[0.3em] uppercase text-terracotta">
                   Ready to Experience?
                 </span>
-                <h2 className="font-serif text-3xl md:text-4xl text-cream mt-4">
+                <h2 className="font-serif text-3xl md:text-4xl text-cream mt-3">
                   Come Create With Us
                 </h2>
-                <p className="font-sans text-cream/70 mt-6 leading-relaxed">
+                <p className="font-sans text-cream/70 mt-4 leading-relaxed">
                   Whether you're looking to try your hand at the wheel, celebrate a special 
                   occasion, or simply spend time in a space that inspires calm—we'd love to welcome you.
                 </p>
                 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
                   <Button 
                     variant="terracotta" 
                     size="lg" 
