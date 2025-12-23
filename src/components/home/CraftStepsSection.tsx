@@ -6,24 +6,24 @@ gsap.registerPlugin(ScrollTrigger);
 
 const steps = [
   {
-    title: "Shaping",
-    description: "Raw clay finds form on the wheel, guided by patient hands.",
-    video: "/video/pottery-hero.mp4",
+    title: "Preparing",
+    description: "The potter's hands center raw clay, reading its nature.",
+    video: "/video/craft-preparing.mp4",
   },
   {
-    title: "Drying",
-    description: "Time slows as moisture leaves, revealing true character.",
-    video: "/video/workshop-1.mp4",
+    title: "Shaping",
+    description: "Gentle pressure coaxes form from spinning earth.",
+    video: "/video/craft-shaping.mp4",
   },
   {
     title: "Glazing",
     description: "Each surface receives its unique mineral embrace.",
-    video: "/video/workshop-2.mp4",
+    video: "/video/craft-glazing.mp4",
   },
   {
     title: "Firing",
     description: "The kiln's heat transforms earth into permanence.",
-    video: "/video/pottery-hero.mp4",
+    video: "/video/craft-firing.mp4",
   },
 ];
 
