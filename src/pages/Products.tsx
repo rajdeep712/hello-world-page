@@ -210,12 +210,16 @@ const Products = () => {
                     Each piece is wheel-thrown by hand and fired in our studio. 
                     All items are food-safe, microwave-safe, and dishwasher-safe.
                   </p>
-                  <div ref={heroSearchRef}>
+                  <motion.div 
+                    ref={heroSearchRef}
+                    animate={{ opacity: isSearchInHeader ? 0 : 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
                     <ProductSearch 
                       onSearch={setSearchQuery} 
                       productImages={productImages} 
                     />
-                  </div>
+                  </motion.div>
                 </motion.div>
 
                 {/* Right side - Custom Order CTA */}
@@ -313,19 +317,22 @@ const Products = () => {
                 />
                 
                 {/* Search bar - only visible when scrolled */}
-                {isSearchInHeader && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2 }}
-                    className="lg:min-w-[250px]"
-                  >
-                    <ProductSearch 
-                      onSearch={setSearchQuery} 
-                      productImages={productImages} 
-                    />
-                  </motion.div>
-                )}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, width: 0 }}
+                  animate={{ 
+                    opacity: isSearchInHeader ? 1 : 0, 
+                    scale: isSearchInHeader ? 1 : 0.9,
+                    width: isSearchInHeader ? "auto" : 0
+                  }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="lg:min-w-[250px] overflow-hidden"
+                  style={{ pointerEvents: isSearchInHeader ? "auto" : "none" }}
+                >
+                  <ProductSearch 
+                    onSearch={setSearchQuery} 
+                    productImages={productImages} 
+                  />
+                </motion.div>
               </div>
             </div>
           </section>
