@@ -187,7 +187,7 @@ const ChatWidget = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-            className="fixed bottom-28 right-6 z-50 w-[400px] h-[550px] bg-cream/98 backdrop-blur-xl rounded-3xl shadow-2xl border border-sand/30 flex flex-col overflow-hidden"
+            className="fixed bottom-28 right-6 z-50 w-[400px] h-[550px] min-h-0 bg-cream/98 backdrop-blur-xl rounded-3xl shadow-2xl border border-sand/30 flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="px-6 py-5 bg-gradient-to-r from-charcoal to-charcoal/95 text-cream flex items-center justify-between rounded-t-3xl">
@@ -211,8 +211,10 @@ const ChatWidget = () => {
 
             {/* Messages */}
             <div 
-              className="flex-1 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-cream/50 to-sand/20 overscroll-contain"
-              onWheel={(e) => e.stopPropagation()}
+              className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-cream/50 to-sand/20 overscroll-contain"
+              data-lenis-prevent
+              data-lenis-prevent-wheel
+              data-lenis-prevent-touch
             >
               {messages.map((message) => (
                 <motion.div
