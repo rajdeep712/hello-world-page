@@ -7,7 +7,6 @@ import ArrivalSection from "@/components/home/ArrivalSection";
 import { HeroScrollZoom } from "@/components/home/HeroScrollZoom";
 import { SmoothScrollProvider } from "@/components/home/SmoothScroll";
 import CulturalGroundingSection from "@/components/home/CulturalGroundingSection";
-import CraftStepsSection from "@/components/home/CraftStepsSection";
 import TexturesGridSection from "@/components/home/TexturesGridSection";
 import ProductsShowcaseSection from "@/components/home/ProductsShowcaseSection";
 import ExperiencesSection from "@/components/home/ExperiencesSection";
@@ -106,9 +105,6 @@ const Index = () => {
             
             {/* Section 2: Cultural Grounding - Philosophy */}
             <CulturalGroundingSection />
-            
-            {/* Section 2.5: Craft Steps - Video Process */}
-            <CraftStepsSection />
           
           {/* Section 3: Textures & Materials - Sensory Grid */}
           <TexturesGridSection />

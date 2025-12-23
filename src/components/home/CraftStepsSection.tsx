@@ -114,24 +114,11 @@ const CraftVideoStep = ({
     if (!stepRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Snap scroll trigger for smooth transition between videos
+      // Main scroll trigger for activation
       ScrollTrigger.create({
         trigger: stepRef.current,
-        start: "top 80%",
-        end: "top top",
-        snap: {
-          snapTo: 1,
-          duration: { min: 0.4, max: 0.8 },
-          delay: 0,
-          ease: "power2.inOut"
-        }
-      });
-
-      // Activation trigger
-      ScrollTrigger.create({
-        trigger: stepRef.current,
-        start: "top 50%",
-        end: "bottom 50%",
+        start: "top 60%",
+        end: "bottom 40%",
         onEnter: onActivate,
         onEnterBack: onActivate,
         onLeave: onDeactivate,
@@ -235,11 +222,11 @@ const CraftVideoStep = ({
   return (
     <div ref={stepRef} className="relative h-screen flex items-center justify-center">
       <div className="relative w-full h-full overflow-hidden">
-        {/* Video container */}
+        {/* Video container with initial faded/scaled state */}
         <div
           ref={videoContainerRef}
           className="absolute inset-0 will-change-transform"
-          style={{ opacity: 0.6, transform: "scale(1)" }}
+          style={{ opacity: 0.4, transform: "scale(0.95)" }}
         >
           <video
             ref={videoRef}
@@ -247,8 +234,7 @@ const CraftVideoStep = ({
             loop
             muted
             playsInline
-            autoPlay
-            preload="auto"
+            preload="metadata"
             className="w-full h-full object-cover"
           />
         </div>

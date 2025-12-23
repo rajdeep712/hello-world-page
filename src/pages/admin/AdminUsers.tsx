@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Users, Phone, Calendar, UserCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Table,
@@ -10,9 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import AdminPageHeader from '@/components/admin/AdminPageHeader';
-import AdminTableWrapper from '@/components/admin/AdminTableWrapper';
-import AdminEmptyState from '@/components/admin/AdminEmptyState';
 
 interface Profile {
   id: string;
@@ -37,93 +34,43 @@ const AdminUsers = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading users...</p>
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader
-        title="Users"
-        description="View registered customer accounts"
-        icon={Users}
-      />
+      <h2 className="font-serif text-xl">Users</h2>
 
-      {profiles && profiles.length > 0 ? (
-        <AdminTableWrapper>
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent border-border/50">
-                <TableHead className="font-semibold">User</TableHead>
-                <TableHead className="font-semibold">Phone</TableHead>
-                <TableHead className="font-semibold">Joined</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {profiles.map((profile) => (
-                <TableRow key={profile.id} className="border-border/50 hover:bg-muted/30">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                        {profile.full_name ? (
-                          <span className="text-sm font-semibold text-primary">
-                            {profile.full_name.charAt(0).toUpperCase()}
-                          </span>
-                        ) : (
-                          <UserCircle className="h-5 w-5 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">
-                          {profile.full_name || 'No name'}
-                        </p>
-                        <p className="text-xs text-muted-foreground font-mono">
-                          {profile.user_id.slice(0, 8)}...
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      {profile.phone ? (
-                        <>
-                          <Phone className="h-4 w-4" />
-                          <span>{profile.phone}</span>
-                        </>
-                      ) : (
-                        <span className="text-muted-foreground/60">—</span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      <span>
-                        {profile.created_at 
-                          ? format(new Date(profile.created_at), 'MMM d, yyyy') 
-                          : '—'}
-                      </span>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </AdminTableWrapper>
-      ) : (
-        <AdminTableWrapper>
-          <AdminEmptyState
-            icon={Users}
-            title="No users yet"
-            description="When customers create accounts, they'll appear here."
-          />
-        </AdminTableWrapper>
-      )}
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Phone</TableHead>
+            <TableHead>Joined</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {profiles?.map((profile) => (
+            <TableRow key={profile.id}>
+              <TableCell className="font-medium">
+                {profile.full_name || 'No name'}
+              </TableCell>
+              <TableCell>{profile.phone || '—'}</TableCell>
+              <TableCell>{profile.created_at ? format(new Date(profile.created_at), 'dd MMM yyyy') : '—'}</TableCell>
+            </TableRow>
+          ))}
+          {profiles?.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                No users found
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 };
