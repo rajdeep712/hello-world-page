@@ -18,6 +18,74 @@ import { Loader2, Plus, MapPin } from 'lucide-react';
 import AddressForm from '@/components/AddressForm';
 import PaymentProcessingOverlay from '@/components/PaymentProcessingOverlay';
 
+// Product images
+import cuppedHandsSculpture from "@/assets/products/cupped-hands-sculpture.jpg";
+import earthToneServingPlates from "@/assets/products/earth-tone-serving-plates.jpg";
+import organicEdgePlatters from "@/assets/products/organic-edge-platters.jpg";
+import forestGreenTeaSet from "@/assets/products/forest-green-tea-set.jpg";
+import minimalistCreamMugs from "@/assets/products/minimalist-cream-mugs.jpg";
+import rusticDuoMugSet from "@/assets/products/rustic-duo-mug-set.jpg";
+import indigoPlanters from "@/assets/products/indigo-planters.jpg";
+import fortuneCookieKeepsakes from "@/assets/products/fortune-cookie-keepsakes.jpg";
+import hexagonalPastelPlates from "@/assets/products/hexagonal-pastel-plates.jpg";
+import songbirdTeaSet from "@/assets/products/songbird-tea-set.jpg";
+import oceanPaletteBowls from "@/assets/products/ocean-palette-bowls.jpg";
+import prayingHandsCollection from "@/assets/products/praying-hands-collection.jpg";
+import terracottaFruitBowls from "@/assets/products/terracotta-fruit-bowls.jpg";
+import birdLidStorageJars from "@/assets/products/bird-lid-storage-jars.jpg";
+import turquoiseGeometricMugs from "@/assets/products/turquoise-geometric-mugs.jpg";
+import oceanBlueMugs from "@/assets/products/ocean-blue-mugs.jpg";
+import ceramicGraterPlates from "@/assets/products/ceramic-grater-plates.jpg";
+import cloudServingPlatters from "@/assets/products/cloud-serving-platters.jpg";
+import ribbedDualToneBowls from "@/assets/products/ribbed-dual-tone-bowls.jpg";
+import meadowFlowerMugs from "@/assets/products/meadow-flower-mugs.jpg";
+
+// Workshop images
+import beginnerPottery from "@/assets/workshops/beginner-pottery.jpg";
+import couplePotteryDate from "@/assets/workshops/couple-pottery-date.jpg";
+import kidsClayPlay from "@/assets/workshops/kids-clay-play.jpg";
+import masterClass from "@/assets/workshops/master-class.jpg";
+
+const productImages: Record<string, string> = {
+  "Cupped Hands Sculpture": cuppedHandsSculpture,
+  "Earth Tone Serving Plates": earthToneServingPlates,
+  "Organic Edge Platters": organicEdgePlatters,
+  "Forest Green Tea Set": forestGreenTeaSet,
+  "Minimalist Cream Mugs": minimalistCreamMugs,
+  "Rustic Duo Mug Set": rusticDuoMugSet,
+  "Indigo Planters": indigoPlanters,
+  "Fortune Cookie Keepsakes": fortuneCookieKeepsakes,
+  "Hexagonal Pastel Plates": hexagonalPastelPlates,
+  "Songbird Tea Set": songbirdTeaSet,
+  "Ocean Palette Bowls": oceanPaletteBowls,
+  "Praying Hands Collection": prayingHandsCollection,
+  "Terracotta Fruit Bowls": terracottaFruitBowls,
+  "Bird Lid Storage Jars": birdLidStorageJars,
+  "Turquoise Geometric Mugs": turquoiseGeometricMugs,
+  "Ocean Blue Mugs": oceanBlueMugs,
+  "Ceramic Grater Plates": ceramicGraterPlates,
+  "Cloud Serving Platters": cloudServingPlatters,
+  "Ribbed Dual-Tone Bowls": ribbedDualToneBowls,
+  "Meadow Flower Mugs": meadowFlowerMugs,
+};
+
+const workshopImages: Record<string, string> = {
+  "Beginner's Pottery": beginnerPottery,
+  "Couple's Pottery Date": couplePotteryDate,
+  "Kids Clay Play": kidsClayPlay,
+  "Master Class": masterClass,
+};
+
+const getItemImage = (item: { item_type: string; product?: { name?: string; image_url?: string }; workshop?: { title?: string; image_url?: string } }) => {
+  if (item.item_type === 'product' && item.product?.name) {
+    return productImages[item.product.name] || item.product.image_url;
+  }
+  if (item.item_type === 'workshop' && item.workshop?.title) {
+    return workshopImages[item.workshop.title] || item.workshop.image_url;
+  }
+  return null;
+};
+
 declare global {
   interface Window {
     Razorpay: any;
@@ -499,11 +567,25 @@ export default function Checkout() {
               
               <div className="space-y-4 mb-6">
                 {items.map(item => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      {item.product?.name || item.workshop?.title} × {item.quantity}
-                    </span>
-                    <span>₹{((item.product?.price || item.workshop?.price || 0) * item.quantity).toLocaleString()}</span>
+                  <div key={item.id} className="flex items-center gap-3 text-sm">
+                    <div className="w-12 h-12 bg-muted rounded-md flex-shrink-0 overflow-hidden">
+                      {getItemImage(item) ? (
+                        <img 
+                          src={getItemImage(item)!} 
+                          alt={item.product?.name || item.workshop?.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+                          No img
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-foreground truncate">{item.product?.name || item.workshop?.title}</p>
+                      <p className="text-muted-foreground text-xs">Qty: {item.quantity}</p>
+                    </div>
+                    <span className="font-medium">₹{((item.product?.price || item.workshop?.price || 0) * item.quantity).toLocaleString()}</span>
                   </div>
                 ))}
               </div>
