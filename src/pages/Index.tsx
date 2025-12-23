@@ -11,6 +11,7 @@ import TexturesGridSection from "@/components/home/TexturesGridSection";
 import ProductsShowcaseSection from "@/components/home/ProductsShowcaseSection";
 import ExperiencesSection from "@/components/home/ExperiencesSection";
 import TrustSection from "@/components/home/TrustSection";
+import CraftStepsSection from "@/components/home/CraftStepsSection";
 import Footer from "@/components/Footer";
 import { Helmet } from "react-helmet-async";
 import ChatWidget from "@/components/ChatWidget";
@@ -103,10 +104,13 @@ const Index = () => {
             {/* Section 1.5: Hero Scroll Zoom - Cinematic Image Sequence */}
             <HeroScrollZoom />
             
-            {/* Section 2: Cultural Grounding - Philosophy */}
-            <CulturalGroundingSection />
+          {/* Section 2: Cultural Grounding - Philosophy */}
+          <CulturalGroundingSection />
+
+          {/* Section 3: Craft Process Video */}
+          <CraftStepsSection />
           
-          {/* Section 3: Textures & Materials - Sensory Grid */}
+          {/* Section 4: Textures & Materials - Sensory Grid */}
           <TexturesGridSection />
           
           {/* Section 5: Products as Outcome - Editorial Layout */}

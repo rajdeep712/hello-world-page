@@ -1,55 +1,65 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import potteryHandsImage from "@/assets/hero/pottery-hands-clay.jpg";
-import kilnImage from "@/assets/studio/kiln.jpg";
-import glazingImage from "@/assets/studio/pottery-glazing.jpg";
-import dryingImage from "@/assets/studio/pottery-drying.jpg";
+import { Play, Pause, Volume2, VolumeX, Maximize } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const steps = [
-  {
-    title: "Shaping",
-    description: "Raw clay finds form on the wheel, guided by patient hands.",
-    image: potteryHandsImage,
-  },
-  {
-    title: "Drying",
-    description: "Time slows as moisture leaves, revealing true character.",
-    image: dryingImage,
-  },
-  {
-    title: "Glazing",
-    description: "Each surface receives its unique mineral embrace.",
-    image: glazingImage,
-  },
-  {
-    title: "Firing",
-    description: "The kiln's heat transforms earth into permanence.",
-    image: kilnImage,
-  },
-];
-
 const CraftStepsSection = () => {
   const sectionRef = useRef<HTMLElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
-    if (!sectionRef.current) return;
+    if (!sectionRef.current || !videoRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Header animation
-      gsap.fromTo(headerRef.current?.querySelectorAll('.header-text') || [],
-        { y: 40, opacity: 0 },
+      // Auto-play when section comes into view
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: "top 60%",
+        end: "bottom 40%",
+        onEnter: () => {
+          if (videoRef.current) {
+            videoRef.current.play();
+            setIsPlaying(true);
+          }
+        },
+        onLeave: () => {
+          if (videoRef.current) {
+            videoRef.current.pause();
+            setIsPlaying(false);
+          }
+        },
+        onEnterBack: () => {
+          if (videoRef.current) {
+            videoRef.current.play();
+            setIsPlaying(true);
+          }
+        },
+        onLeaveBack: () => {
+          if (videoRef.current) {
+            videoRef.current.pause();
+            setIsPlaying(false);
+          }
+        }
+      });
+
+      // Fade in animation
+      gsap.fromTo(containerRef.current,
+        { opacity: 0, y: 60 },
         {
-          y: 0,
           opacity: 1,
+          y: 0,
           duration: 1.2,
-          stagger: 0.2,
           ease: "power3.out",
           scrollTrigger: {
-            trigger: headerRef.current,
+            trigger: sectionRef.current,
             start: "top 70%",
             toggleActions: "play none none reverse"
           }
@@ -60,208 +70,164 @@ const CraftStepsSection = () => {
     return () => ctx.revert();
   }, []);
 
+  // Update progress bar
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const updateProgress = () => {
+      const currentProgress = (video.currentTime / video.duration) * 100;
+      setProgress(currentProgress);
+    };
+
+    video.addEventListener('timeupdate', updateProgress);
+    return () => video.removeEventListener('timeupdate', updateProgress);
+  }, []);
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!videoRef.current) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickPosition = (e.clientX - rect.left) / rect.width;
+    videoRef.current.currentTime = clickPosition * videoRef.current.duration;
+  };
+
   return (
-    <section ref={sectionRef} className="bg-charcoal relative">
-      {/* Section header */}
-      <div 
-        ref={headerRef}
-        className="snap-section h-screen flex items-center justify-center sticky top-0 z-0"
-      >
-        <div className="text-center px-8">
-          <p className="header-text text-[10px] tracking-[0.4em] uppercase text-cream/40 mb-8">
+    <section ref={sectionRef} className="bg-charcoal py-24 md:py-32 lg:py-40">
+      <div className="container mx-auto px-6 md:px-12 lg:px-20">
+        {/* Section header */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="text-center mb-12 md:mb-16"
+        >
+          <p className="text-[10px] tracking-[0.4em] uppercase text-cream/40 mb-6">
             The Process
           </p>
-          <h2 className="header-text font-serif text-3xl md:text-4xl lg:text-5xl text-cream font-light">
+          <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-cream font-light">
             From Earth to Art
           </h2>
-        </div>
-      </div>
+          <p className="mt-6 text-cream/50 font-sans text-sm md:text-base max-w-lg mx-auto leading-relaxed">
+            Watch the journey of clay as it transforms through patient hands into lasting art
+          </p>
+        </motion.div>
 
-      {/* Steps - GSAP handles snapping at 30% visibility */}
-      {steps.map((step, index) => (
-        <CraftStep key={step.title} step={step} index={index} isLast={index === steps.length - 1} />
-      ))}
-    </section>
-  );
-};
-
-const CraftStep = ({ 
-  step, 
-  index, 
-  isLast 
-}: { 
-  step: typeof steps[0]; 
-  index: number;
-  isLast: boolean;
-}) => {
-  const stepRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!stepRef.current) return;
-
-    const ctx = gsap.context(() => {
-      // Snap trigger - smooth cinematic snap
-      ScrollTrigger.create({
-        trigger: stepRef.current,
-        start: "top 90%",
-        end: "top top",
-        snap: {
-          snapTo: 1,
-          duration: { min: 0.5, max: 1 },
-          delay: 0.05,
-          ease: "power3.inOut"
-        }
-      });
-
-      // Image reveal animation - scale and fade when in view
-      gsap.fromTo(imageRef.current,
-        { scale: 1.15, opacity: 0.6 },
-        {
-          scale: 1,
-          opacity: 1,
-          duration: 1.2,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: stepRef.current,
-            start: "top 60%",
-            toggleActions: "play none none reverse"
-          }
-        }
-      );
-
-      // Image parallax - slower, more dramatic
-      gsap.to(imageRef.current, {
-        yPercent: -15,
-        ease: "none",
-        scrollTrigger: {
-          trigger: stepRef.current,
-          start: "top bottom",
-          end: "bottom top",
-          scrub: 2.5
-        }
-      });
-
-      // Content subtle parallax for layered depth
-      gsap.to(contentRef.current, {
-        yPercent: -8,
-        ease: "none",
-        scrollTrigger: {
-          trigger: stepRef.current,
-          start: "top bottom",
-          end: "bottom top",
-          scrub: 3.5
-        }
-      });
-
-      // Step number animation - slide up and fade
-      gsap.fromTo(contentRef.current?.querySelector('.step-number'),
-        { y: 60, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: stepRef.current,
-            start: "top 50%",
-            toggleActions: "play none none reverse"
-          }
-        }
-      );
-
-      // Title animation - slide up with delay
-      gsap.fromTo(contentRef.current?.querySelector('.step-title'),
-        { y: 40, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1,
-          delay: 0.15,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: stepRef.current,
-            start: "top 50%",
-            toggleActions: "play none none reverse"
-          }
-        }
-      );
-
-      // Description animation - slide up with longer delay
-      gsap.fromTo(contentRef.current?.querySelector('.step-description'),
-        { y: 30, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1,
-          delay: 0.3,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: stepRef.current,
-            start: "top 50%",
-            toggleActions: "play none none reverse"
-          }
-        }
-      );
-
-      // Fade out for non-last items
-      if (!isLast) {
-        gsap.to(stepRef.current, {
-          opacity: 0.4,
-          ease: "none",
-          scrollTrigger: {
-            trigger: stepRef.current,
-            start: "bottom 70%",
-            end: "bottom 30%",
-            scrub: true
-          }
-        });
-      }
-
-    }, stepRef);
-
-    return () => ctx.revert();
-  }, [isLast]);
-
-  return (
-    <div ref={stepRef} className="relative h-screen">
-      <div className="relative h-full overflow-hidden">
-        <img
-          ref={imageRef}
-          src={step.image}
-          alt={step.title}
-          className="w-full h-[120%] object-cover will-change-transform"
-        />
-        {/* Cinematic gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/30 to-charcoal/10" />
-        
-        {/* Content overlay */}
-        <div
-          ref={contentRef}
-          className="absolute inset-0 flex items-end pb-28 md:pb-36"
+        {/* Video container */}
+        <div 
+          ref={containerRef}
+          className="relative max-w-5xl mx-auto rounded-lg overflow-hidden bg-charcoal/50 group"
         >
-          <div className="container px-8 md:px-16 lg:px-24">
-            <div className="max-w-lg">
-              {/* Step number */}
-              <span className="step-number font-serif text-6xl md:text-7xl text-cream/[0.08] block mb-6">
-                {String(index + 1).padStart(2, '0')}
-              </span>
-              
-              {/* Title */}
-              <h3 className="step-title font-serif text-2xl md:text-3xl text-cream font-light mb-4">
-                {step.title}
-              </h3>
-              
-              {/* Description */}
-              <p className="step-description font-sans text-cream/50 text-sm md:text-base max-w-sm leading-relaxed">
-                {step.description}
-              </p>
+          {/* Video */}
+          <video
+            ref={videoRef}
+            src="/video/crafting-process.mp4"
+            className="w-full aspect-video object-cover"
+            muted={isMuted}
+            loop
+            playsInline
+            preload="metadata"
+          />
+
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 via-transparent to-charcoal/20 pointer-events-none" />
+
+          {/* Play button overlay (shows when paused) */}
+          {!isPlaying && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              onClick={togglePlay}
+              className="absolute inset-0 flex items-center justify-center z-10"
+            >
+              <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-cream/10 backdrop-blur-sm border border-cream/20 flex items-center justify-center hover:bg-cream/20 transition-all duration-300">
+                <Play className="w-8 h-8 md:w-10 md:h-10 text-cream ml-1" fill="currentColor" />
+              </div>
+            </motion.button>
+          )}
+
+          {/* Controls overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            {/* Progress bar */}
+            <div 
+              className="w-full h-1 bg-cream/20 rounded-full mb-4 cursor-pointer"
+              onClick={handleProgressClick}
+            >
+              <motion.div 
+                className="h-full bg-cream/60 rounded-full"
+                style={{ width: `${progress}%` }}
+                transition={{ duration: 0.1 }}
+              />
+            </div>
+
+            {/* Control buttons */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={togglePlay}
+                  className="w-10 h-10 rounded-full bg-cream/10 backdrop-blur-sm border border-cream/20 flex items-center justify-center hover:bg-cream/20 transition-all duration-300"
+                >
+                  {isPlaying ? (
+                    <Pause className="w-4 h-4 text-cream" />
+                  ) : (
+                    <Play className="w-4 h-4 text-cream ml-0.5" fill="currentColor" />
+                  )}
+                </button>
+
+                <button
+                  onClick={toggleMute}
+                  className="w-10 h-10 rounded-full bg-cream/10 backdrop-blur-sm border border-cream/20 flex items-center justify-center hover:bg-cream/20 transition-all duration-300"
+                >
+                  {isMuted ? (
+                    <VolumeX className="w-4 h-4 text-cream" />
+                  ) : (
+                    <Volume2 className="w-4 h-4 text-cream" />
+                  )}
+                </button>
+              </div>
+
+              <button
+                onClick={toggleFullscreen}
+                className="w-10 h-10 rounded-full bg-cream/10 backdrop-blur-sm border border-cream/20 flex items-center justify-center hover:bg-cream/20 transition-all duration-300"
+              >
+                <Maximize className="w-4 h-4 text-cream" />
+              </button>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
