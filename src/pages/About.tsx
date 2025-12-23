@@ -4,8 +4,6 @@ import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import founderImage from "@/assets/founder-shivangi.jpg";
-import bgAboutImage from "@/assets/bg-about.png";
-import imperfectionImage from "@/assets/imperfection.png";
 
 const About = () => {
   return (
@@ -20,33 +18,28 @@ const About = () => {
 
       <div className="min-h-screen">
         <Navigation />
-        {/* Hero with Background Image */}
-        <section 
-          className="h-[70vh] bg-cover bg-center bg-no-repeat flex items-center justify-center"
-          style={{
-            backgroundImage: `url(${bgAboutImage})`,
-            backgroundAttachment: 'fixed'
-          }}
-        >
-          <div className="container px-6">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="max-w-3xl mx-auto text-center"
-            >
-              <span className="font-serif text-6xl text-primary/30">芭蕉</span>
-              <h1 className="font-serif text-4xl md:text-6xl text-foreground mt-4">
-                Our Story
-              </h1>
-              <p className="font-sans text-muted-foreground mt-6 leading-relaxed">
-                Born from a deep appreciation for Japanese aesthetics and the 
-                timeless wisdom of the haiku master Matsuo Bashō.
-              </p>
-            </motion.div>
-          </div>
-        </section>
-        <main>
+        <main className="pt-24">
+          {/* Hero */}
+          <section className="py-20 bg-gradient-to-b from-sand to-background">
+            <div className="container px-6">
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="max-w-3xl mx-auto text-center"
+              >
+                <span className="font-serif text-6xl text-primary/30">芭蕉</span>
+                <h1 className="font-serif text-4xl md:text-6xl text-foreground mt-4">
+                  Our Story
+                </h1>
+                <p className="font-sans text-muted-foreground mt-6 leading-relaxed">
+                  Born from a deep appreciation for Japanese aesthetics and the 
+                  timeless wisdom of the haiku master Matsuo Bashō.
+                </p>
+              </motion.div>
+            </div>
+          </section>
+
           {/* The Philosophy */}
           <section className="py-20 bg-card">
             <div className="container px-6">
@@ -83,13 +76,12 @@ const About = () => {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6 }}
-                  className="aspect-square rounded-sm overflow-hidden"
+                  className="aspect-square bg-gradient-to-br from-secondary to-muted rounded-sm flex items-center justify-center"
                 >
-                  <img
-                    src={imperfectionImage}
-                    alt="Wabi-Sabi - Embracing Imperfection"
-                    className="w-full h-[50vh] object-cover p-4"
-                  />
+                  <div className="text-center">
+                    <span className="font-serif text-8xl text-primary/20">侘寂</span>
+                    <p className="font-sans text-sm text-stone mt-4">Wabi-Sabi</p>
+                  </div>
                 </motion.div>
               </div>
             </div>
