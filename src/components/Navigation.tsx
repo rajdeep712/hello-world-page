@@ -164,7 +164,7 @@ const Navigation = () => {
           opacity: { duration: 0.3, ease: 'easeOut' },
           scale: { duration: 0.3, ease: 'easeOut' },
         }}
-        className={`fixed z-50 inset-x-0 mx-auto max-w-5xl w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] rounded-full transition-[background-color,border-color,backdrop-filter,top,box-shadow] duration-500 ease-out overflow-hidden ${
+        className={`fixed z-50 inset-x-0 mx-auto max-w-5xl w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] rounded-full transition-[background-color,border-color,backdrop-filter,top,box-shadow] duration-500 ease-out ${
           scrolled
             ? "top-3 bg-parchment/90 backdrop-blur-md border border-border/40"
             : isHomePage
@@ -172,27 +172,10 @@ const Navigation = () => {
             : "top-6 bg-parchment/70 backdrop-blur-[4px] border border-border/30"
         }`}
         style={{
+          // Extremely subtle shadow when scrolled, or none (craft-brand aesthetic)
           boxShadow: scrolled ? '0 2px 12px rgba(0,0,0,0.03)' : 'none',
         }}
       >
-        {/* Particle texture overlay */}
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-[0.03]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-            backgroundSize: '150px 150px',
-          }}
-        />
-        {/* Scattered particle dots */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute w-1 h-1 rounded-full bg-primary/10 top-[20%] left-[10%]" />
-          <div className="absolute w-0.5 h-0.5 rounded-full bg-primary/15 top-[60%] left-[25%]" />
-          <div className="absolute w-1 h-1 rounded-full bg-primary/8 top-[30%] left-[45%]" />
-          <div className="absolute w-0.5 h-0.5 rounded-full bg-primary/12 top-[70%] left-[60%]" />
-          <div className="absolute w-1 h-1 rounded-full bg-primary/10 top-[40%] left-[75%]" />
-          <div className="absolute w-0.5 h-0.5 rounded-full bg-primary/15 top-[25%] left-[88%]" />
-          <div className="absolute w-0.5 h-0.5 rounded-full bg-primary/10 top-[55%] left-[92%]" />
-        </div>
         <nav className={`px-4 md:px-6 flex items-center justify-between transition-all duration-300 ${
           isCompact ? 'py-1.5' : 'py-2'
         }`}>

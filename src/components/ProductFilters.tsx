@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SlidersHorizontal, ArrowUpDown, Sparkles } from "lucide-react";
+import { SlidersHorizontal, ArrowUpDown } from "lucide-react";
 
 interface ProductFiltersProps {
   minPrice: number;
@@ -14,12 +13,12 @@ interface ProductFiltersProps {
 }
 
 const sortOptions = [
-  { value: "newest", label: "Newest First", icon: "✨" },
-  { value: "oldest", label: "Oldest First", icon: "📜" },
-  { value: "price-low", label: "Price: Low to High", icon: "↑" },
-  { value: "price-high", label: "Price: High to Low", icon: "↓" },
-  { value: "name-asc", label: "Name: A to Z", icon: "🔤" },
-  { value: "name-desc", label: "Name: Z to A", icon: "🔠" },
+  { value: "newest", label: "Newest First" },
+  { value: "oldest", label: "Oldest First" },
+  { value: "price-low", label: "Price: Low to High" },
+  { value: "price-high", label: "Price: High to Low" },
+  { value: "name-asc", label: "Name: A to Z" },
+  { value: "name-desc", label: "Name: Z to A" },
 ];
 
 const ProductFilters = ({
@@ -44,114 +43,46 @@ const ProductFilters = ({
     onPriceRangeChange([values[0], values[1]]);
   };
 
-  const isFiltered = localRange[0] > minPrice || localRange[1] < maxPrice;
-
   return (
-    <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center">
       {/* Price Range Filter */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative group"
-      >
-        {/* Subtle glow on interaction */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 via-terracotta/10 to-amber/10 rounded opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-500" />
-        
-        <div className="relative flex items-center gap-1.5 bg-card/80 backdrop-blur-sm border border-border/60 rounded px-1.5 py-1 min-w-[180px] hover:border-primary/30 transition-all duration-300">
-          {/* Icon container */}
-          <div className="flex items-center justify-center w-4 h-4 rounded bg-gradient-to-br from-primary/10 to-terracotta/10 border border-primary/10">
-            <SlidersHorizontal className="h-2.5 w-2.5 text-primary" />
+      <div className="flex items-center gap-3 min-w-[280px]">
+        <SlidersHorizontal className="h-4 w-4 text-muted-foreground shrink-0" />
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Price Range</span>
+            <span className="font-medium text-foreground">
+              ₹{localRange[0].toLocaleString()} - ₹{localRange[1].toLocaleString()}
+            </span>
           </div>
-          
-          <div className="flex-1 space-y-0.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[8px] font-medium tracking-wide uppercase text-muted-foreground">
-                Price
-              </span>
-              <motion.span 
-                key={`${localRange[0]}-${localRange[1]}`}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className={`text-[10px] font-semibold tabular-nums ${isFiltered ? 'text-primary' : 'text-foreground'}`}
-              >
-                ₹{localRange[0].toLocaleString()} – ₹{localRange[1].toLocaleString()}
-              </motion.span>
-            </div>
-            
-            <div className="relative">
-              <Slider
-                value={localRange}
-                min={minPrice}
-                max={maxPrice}
-                step={100}
-                onValueChange={handleSliderChange}
-                onValueCommit={handleSliderCommit}
-                className="w-full [&_[role=slider]]:h-2.5 [&_[role=slider]]:w-2.5"
-              />
-            </div>
-          </div>
-          
-          {/* Active filter indicator */}
-          {isFiltered && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-primary rounded-full border border-background"
-            />
-          )}
+          <Slider
+            value={localRange}
+            min={minPrice}
+            max={maxPrice}
+            step={100}
+            onValueChange={handleSliderChange}
+            onValueCommit={handleSliderCommit}
+            className="w-full"
+          />
         </div>
-      </motion.div>
-
-      {/* Divider */}
-      <div className="hidden sm:block w-px h-5 bg-gradient-to-b from-transparent via-border to-transparent" />
+      </div>
 
       {/* Sort Dropdown */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="relative group"
-      >
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-amber/10 via-primary/10 to-terracotta/10 rounded opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-500" />
-        
-        <div className="relative flex items-center gap-1 bg-card/80 backdrop-blur-sm border border-border/60 rounded hover:border-primary/30 transition-all duration-300 overflow-hidden">
-          {/* Icon container */}
-          <div className="flex items-center justify-center w-4 h-4 ml-1.5 rounded bg-gradient-to-br from-amber/10 to-primary/10 border border-amber/10">
-            <ArrowUpDown className="h-2.5 w-2.5 text-amber" />
-          </div>
-          
-          <Select value={sortBy} onValueChange={onSortChange}>
-            <SelectTrigger className="w-[110px] h-6 text-[10px] border-0 bg-transparent shadow-none focus:ring-0 focus:ring-offset-0 pr-2 py-0">
-              <div className="flex items-center gap-1">
-                <span className="text-[8px] uppercase tracking-wide text-muted-foreground">Sort:</span>
-                <SelectValue placeholder="Sort by" />
-              </div>
-            </SelectTrigger>
-            <SelectContent 
-              className="bg-card/95 backdrop-blur-lg border-border/60 shadow-elevated rounded overflow-hidden"
-              align="end"
-            >
-              <div className="px-1.5 py-0.5 border-b border-border/40 mb-0.5">
-                <span className="text-[8px] uppercase tracking-wider text-muted-foreground font-medium">
-                  Sort Options
-                </span>
-              </div>
-              {sortOptions.map((option) => (
-                <SelectItem 
-                  key={option.value} 
-                  value={option.value}
-                  className="rounded mx-0.5 my-0.5 cursor-pointer text-[10px] transition-colors data-[highlighted]:bg-primary/10 data-[state=checked]:bg-primary/15 data-[state=checked]:text-primary py-1"
-                >
-                  <span className="flex items-center gap-1">
-                    <span className="text-[10px] opacity-70">{option.icon}</span>
-                    <span>{option.label}</span>
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </motion.div>
+      <div className="flex items-center gap-2">
+        <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+        <Select value={sortBy} onValueChange={onSortChange}>
+          <SelectTrigger className="w-[180px] h-9 text-sm">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            {sortOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 };

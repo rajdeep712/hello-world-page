@@ -123,7 +123,7 @@ const Products = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .order('in_stock', { ascending: false })
+        .eq('in_stock', true)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -290,41 +290,24 @@ const Products = () => {
           </section>
 
           {/* Category Filter */}
-          <section className="py-5 bg-background/80 backdrop-blur-md border-b border-border/50 sticky top-0 z-30">
-            <div className="container px-6 space-y-5">
-              {/* Category Pills */}
+          <section className="py-6 bg-background border-b border-border sticky top-16 z-30">
+            <div className="container px-6 space-y-4">
               <div className="flex flex-wrap gap-2">
-                {categories.map((cat, index) => (
-                  <motion.button
+                {categories.map((cat) => (
+                  <button
                     key={cat}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
                     onClick={() => setActiveCategory(cat)}
-                    className={`
-                      relative font-sans text-sm tracking-wide px-5 py-2.5 rounded-full 
-                      transition-all duration-300 capitalize overflow-hidden
-                      ${activeCategory === cat
-                        ? "bg-primary text-primary-foreground shadow-warm"
-                        : "bg-card/70 text-foreground/80 border border-border/50 hover:border-primary/30 hover:bg-card"
-                      }
-                    `}
+                    className={`font-sans text-sm tracking-wider px-4 py-2 rounded-sm transition-all duration-300 capitalize ${
+                      activeCategory === cat
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
+                    }`}
                   >
-                    {/* Active indicator glow */}
-                    {activeCategory === cat && (
-                      <motion.div
-                        layoutId="activeCategoryGlow"
-                        className="absolute inset-0 bg-gradient-to-r from-primary via-terracotta to-primary rounded-full -z-10"
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                      />
-                    )}
-                    <span className="relative z-10">{cat}</span>
-                  </motion.button>
+                    {cat}
+                  </button>
                 ))}
               </div>
-              
-              {/* Filters Row */}
-              <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+              <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
                 <ProductFilters
                   minPrice={minPrice}
                   maxPrice={maxPrice}
@@ -343,23 +326,13 @@ const Products = () => {
                     width: isSearchInHeader ? "auto" : 0
                   }}
                   transition={{ duration: 0.2 }}
-                  className={`${isSearchInHeader ? "block" : "hidden"} lg:min-w-[300px]`}
+                  className={`${isSearchInHeader ? "block" : "hidden"} sm:min-w-[280px]`}
                 >
                   <ProductSearch 
                     onSearch={setSearchQuery} 
                     productImages={productImages} 
                   />
                 </motion.div>
-              </div>
-              
-              {/* Results count */}
-              <div className="flex items-center gap-2 pt-1">
-                <span className="text-sm text-muted-foreground">
-                  Showing <span className="font-medium text-foreground">{filteredProducts.length}</span> {filteredProducts.length === 1 ? 'product' : 'products'}
-                  {activeCategory !== "All" && (
-                    <span> in <span className="font-medium text-primary capitalize">{activeCategory}</span></span>
-                  )}
-                </span>
               </div>
             </div>
           </section>
@@ -393,16 +366,10 @@ const Products = () => {
                       {/* Glow effect on hover */}
                       <div className="absolute -inset-2 bg-gradient-to-r from-primary/20 via-amber/20 to-primary/20 rounded-2xl opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none" />
                       
-                      <div className={`relative bg-card rounded-xl overflow-hidden border border-border/50 group-hover:border-primary/30 transition-all duration-500 group-hover:shadow-warm ${!product.in_stock ? 'opacity-75' : ''}`}>
+                      <div className="relative bg-card rounded-xl overflow-hidden border border-border/50 group-hover:border-primary/30 transition-all duration-500 group-hover:shadow-warm">
                         {/* Image container - clickable */}
                         <Link to={`/products/${product.id}`} className="block">
                           <div className="aspect-square bg-gradient-to-br from-secondary via-muted to-card relative overflow-hidden cursor-pointer">
-                            {/* Out of Stock Badge */}
-                            {!product.in_stock && (
-                              <div className="absolute top-3 left-3 z-20 bg-destructive text-destructive-foreground text-xs font-medium px-2.5 py-1 rounded-full">
-                                Out of Stock
-                              </div>
-                            )}
                             {/* Wishlist button */}
                             <WishlistButton 
                               product={{
@@ -437,23 +404,21 @@ const Products = () => {
                             >
                                 <Button 
                                 size="sm" 
-                                variant={product.in_stock ? "terracotta" : "secondary"}
+                                variant="terracotta"
                                 className="w-full backdrop-blur-sm"
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  if (product.in_stock) {
-                                    handleAddToCart(product);
-                                  }
+                                  handleAddToCart(product);
                                 }}
-                                disabled={addingToCart === product.id || !product.in_stock}
+                                disabled={addingToCart === product.id}
                               >
                                 {addingToCart === product.id ? (
                                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                 ) : (
                                   <ShoppingBag className="h-4 w-4 mr-2" />
                                 )}
-                                {product.in_stock ? 'Add to Cart' : 'Out of Stock'}
+                                Add to Cart
                               </Button>
                             </div>
                           </div>
