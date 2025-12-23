@@ -114,11 +114,24 @@ const CraftVideoStep = ({
     if (!stepRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Main scroll trigger for activation
+      // Snap scroll trigger for smooth transition between videos
       ScrollTrigger.create({
         trigger: stepRef.current,
-        start: "top 60%",
-        end: "bottom 40%",
+        start: "top 80%",
+        end: "top top",
+        snap: {
+          snapTo: 1,
+          duration: { min: 0.4, max: 0.8 },
+          delay: 0,
+          ease: "power2.inOut"
+        }
+      });
+
+      // Activation trigger
+      ScrollTrigger.create({
+        trigger: stepRef.current,
+        start: "top 50%",
+        end: "bottom 50%",
         onEnter: onActivate,
         onEnterBack: onActivate,
         onLeave: onDeactivate,
