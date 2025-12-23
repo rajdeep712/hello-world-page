@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/useCart";
@@ -80,26 +80,7 @@ const Products = () => {
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
-  
-  const [isSearchInHeader, setIsSearchInHeader] = useState(false);
-  const heroSearchRef = useRef<HTMLDivElement>(null);
   const { addToCart } = useCart();
-
-  // Track when hero search scrolls out of view
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsSearchInHeader(!entry.isIntersecting);
-      },
-      { threshold: 0, rootMargin: "-80px 0px 0px 0px" }
-    );
-
-    if (heroSearchRef.current) {
-      observer.observe(heroSearchRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
 
 
   useEffect(() => {
@@ -211,12 +192,6 @@ const Products = () => {
                     Each piece is wheel-thrown by hand and fired in our studio. 
                     All items are food-safe, microwave-safe, and dishwasher-safe.
                   </p>
-                  <div ref={heroSearchRef}>
-                    <ProductSearch 
-                      onSearch={setSearchQuery} 
-                      productImages={productImages} 
-                    />
-                  </div>
                 </motion.div>
 
                 {/* Right side - Custom Order CTA */}
@@ -269,64 +244,58 @@ const Products = () => {
           </section>
 
           {/* Category Filter */}
-          <section className="py-5 bg-background/80 backdrop-blur-md border-b border-border/50 sticky top-0 z-30">
-            <div className="container px-6 space-y-5">
-              {/* Category Pills */}
-              <div className="flex flex-wrap gap-2">
-                {categories.map((cat, index) => (
-                  <motion.button
-                    key={cat}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    onClick={() => setActiveCategory(cat)}
-                    className={`
-                      relative font-sans text-xs tracking-wide px-3 py-1.5 rounded-full 
-                      transition-all duration-300 capitalize overflow-hidden
-                      ${activeCategory === cat
-                        ? "bg-primary text-primary-foreground shadow-warm"
-                        : "bg-card/70 text-foreground/80 border border-border/50 hover:border-primary/30 hover:bg-card"
-                      }
-                    `}
-                  >
-                    {/* Active indicator glow */}
-                    {activeCategory === cat && (
-                      <motion.div
-                        layoutId="activeCategoryGlow"
-                        className="absolute inset-0 bg-gradient-to-r from-primary via-terracotta to-primary rounded-full -z-10"
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                      />
-                    )}
-                    <span className="relative z-10">{cat}</span>
-                  </motion.button>
-                ))}
-              </div>
-              
-              {/* Filters Row */}
-              <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+          <section className="py-3 bg-background/80 backdrop-blur-md border-b border-border/50 sticky top-0 z-30">
+            <div className="container px-6">
+              {/* All filters in one row */}
+              <div className="flex items-center gap-3 flex-wrap lg:flex-nowrap">
+                {/* Category Pills */}
+                <div className="flex flex-wrap gap-1.5 flex-1">
+                  {categories.map((cat, index) => (
+                    <motion.button
+                      key={cat}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      onClick={() => setActiveCategory(cat)}
+                      className={`
+                        relative font-sans text-xs tracking-wide px-3 py-1.5 rounded-full 
+                        transition-all duration-300 capitalize overflow-hidden
+                        ${activeCategory === cat
+                          ? "bg-primary text-primary-foreground shadow-warm"
+                          : "bg-card/70 text-foreground/80 border border-border/50 hover:border-primary/30 hover:bg-card"
+                        }
+                      `}
+                    >
+                      {/* Active indicator glow */}
+                      {activeCategory === cat && (
+                        <motion.div
+                          layoutId="activeCategoryGlow"
+                          className="absolute inset-0 bg-gradient-to-r from-primary via-terracotta to-primary rounded-full -z-10"
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        />
+                      )}
+                      <span className="relative z-10">{cat}</span>
+                    </motion.button>
+                  ))}
+                </div>
+                
+                {/* Divider */}
+                <div className="hidden lg:block w-px h-6 bg-border/50" />
+                
+                {/* Sort */}
                 <ProductFilters
                   sortBy={sortBy}
                   onSortChange={setSortBy}
                 />
                 
-                {/* Search bar moves here when scrolled */}
-                <motion.div
-                  initial={false}
-                  animate={{ 
-                    opacity: isSearchInHeader ? 1 : 0,
-                    scale: isSearchInHeader ? 1 : 0.95,
-                    width: isSearchInHeader ? "auto" : 0
-                  }}
-                  transition={{ duration: 0.2 }}
-                  className={`${isSearchInHeader ? "block" : "hidden"} lg:min-w-[300px]`}
-                >
+                {/* Search bar - always visible in header */}
+                <div className="w-full lg:w-auto lg:min-w-[250px]">
                   <ProductSearch 
                     onSearch={setSearchQuery} 
                     productImages={productImages} 
                   />
-                </motion.div>
+                </div>
               </div>
-              
             </div>
           </section>
 
