@@ -155,12 +155,16 @@ const Navigation = () => {
         animate={{ 
           y: isVisible ? 0 : -100, 
           opacity: isVisible ? 1 : 0,
+          scale: isCompact && !isHomePage ? 0.97 : 1,
         }}
         transition={{ 
           duration: 0.4, 
-          ease: [0.25, 0.1, 0.25, 1] 
+          ease: [0.25, 0.1, 0.25, 1],
+          y: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] },
+          opacity: { duration: 0.3, ease: 'easeOut' },
+          scale: { duration: 0.3, ease: 'easeOut' },
         }}
-        className={`fixed z-50 inset-x-0 mx-auto max-w-5xl w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] rounded-full transition-[background-color,border-color,backdrop-filter,top] duration-500 ease-out ${
+        className={`fixed z-50 inset-x-0 mx-auto max-w-5xl w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] rounded-full transition-[background-color,border-color,backdrop-filter,top,box-shadow] duration-500 ease-out ${
           scrolled
             ? "top-3 bg-parchment/90 backdrop-blur-md border border-border/40"
             : isHomePage
@@ -170,9 +174,6 @@ const Navigation = () => {
         style={{
           // Extremely subtle shadow when scrolled, or none (craft-brand aesthetic)
           boxShadow: scrolled ? '0 2px 12px rgba(0,0,0,0.03)' : 'none',
-          // Slight shrink on inner pages when scrolled
-          transform: isCompact && !isHomePage ? 'scale(0.97)' : undefined,
-          transition: 'transform 0.3s ease, box-shadow 0.5s ease',
         }}
       >
         <nav className={`px-4 md:px-6 flex items-center justify-between transition-all duration-300 ${
@@ -204,11 +205,11 @@ const Navigation = () => {
                     }`}
                   >
                     {link.name}
-                    {/* Subtle active indicator - small dot instead of underline */}
+                    {/* Subtle active indicator - underline */}
                     {isActiveLink(link.path) && (
                       <motion.span
                         layoutId="activeNav"
-                        className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/70"
+                        className="absolute -bottom-1 left-0 right-0 h-[1.5px] bg-primary/70 rounded-full"
                         transition={{ duration: 0.2, ease: 'easeOut' }}
                       />
                     )}
