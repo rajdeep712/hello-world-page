@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, Plus, MapPin } from 'lucide-react';
+import { Loader2, Plus, MapPin, Package, CreditCard, FileText, Check, ChevronRight, Shield } from 'lucide-react';
 import AddressForm from '@/components/AddressForm';
 import PaymentProcessingOverlay from '@/components/PaymentProcessingOverlay';
 
@@ -50,14 +50,12 @@ export default function Checkout() {
   const total = subtotal + shipping;
   const hasProducts = items.some(item => item.item_type === 'product');
 
-  // Fetch profile and set defaults
   useEffect(() => {
     if (user) {
       fetchProfile();
     }
   }, [user]);
 
-  // Set default address when addresses load
   useEffect(() => {
     if (addresses.length > 0 && !selectedAddressId) {
       const defaultAddr = getDefaultAddress();
@@ -237,15 +235,12 @@ export default function Checkout() {
             setPaymentStatus('success');
             setCompletedOrderId(order.id);
 
-            // Send order confirmation email - only order_id needed, auth handled by function
             supabase.functions.invoke('send-order-confirmation', {
               body: { order_id: order.id },
             }).catch(err => console.error('Email sending error:', err));
 
-            // Clear cart after payment success (do not block redirect)
             clearCart().catch(err => console.error('Clear cart error:', err));
 
-            // Wait for animation then hard-navigate (more reliable than SPA navigate after Razorpay modal)
             setTimeout(() => {
               window.location.assign(`/order-confirmation/${order.id}`);
             }, 1500);
@@ -285,21 +280,18 @@ export default function Checkout() {
     }
   };
 
-  // Redirect if order completed
   useEffect(() => {
     if (completedOrderId) {
       navigate(`/order-confirmation/${completedOrderId}`, { replace: true });
     }
   }, [completedOrderId, navigate]);
 
-  // Redirect to cart if empty
   useEffect(() => {
     if (items.length === 0 && !completedOrderId) {
       navigate('/cart', { replace: true });
     }
   }, [items.length, completedOrderId, navigate]);
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (!user) {
       navigate('/auth?redirect=/checkout', { replace: true });
@@ -309,6 +301,8 @@ export default function Checkout() {
   if (items.length === 0 || !user || completedOrderId) {
     return null;
   }
+
+  const selectedAddress = getSelectedAddress();
 
   return (
     <>
@@ -323,61 +317,106 @@ export default function Checkout() {
 
       <Navigation />
 
-      <main className="min-h-screen bg-background pt-24 pb-16">
-        <div className="container mx-auto px-4 max-w-4xl">
-          <motion.h1 
-            className="font-display text-4xl md:text-5xl text-foreground mb-8"
+      <main className="min-h-screen bg-background pt-24 pb-20">
+        <div className="container mx-auto px-4 max-w-6xl">
+          {/* Header */}
+          <motion.div 
+            className="text-center mb-10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            Checkout
-          </motion.h1>
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-foreground mb-3">
+              Checkout
+            </h1>
+            <div className="w-16 h-px bg-primary/40 mx-auto" />
+          </motion.div>
 
-          <div className="grid lg:grid-cols-2 gap-8">
+          {/* Progress Steps */}
+          <motion.div 
+            className="flex items-center justify-center gap-2 mb-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="flex items-center gap-2 text-primary">
+              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">
+                <Check className="w-4 h-4" />
+              </div>
+              <span className="text-sm font-medium hidden sm:inline">Cart</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            <div className="flex items-center gap-2 text-primary">
+              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm">2</div>
+              <span className="text-sm font-medium hidden sm:inline">Details</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm">3</div>
+              <span className="text-sm hidden sm:inline">Payment</span>
+            </div>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-5 gap-8 lg:gap-12">
+            {/* Form Section */}
             <motion.form 
               onSubmit={handleSubmit}
-              className="space-y-6"
+              className="lg:col-span-3 space-y-6"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
             >
               {/* Contact Information */}
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                <h2 className="font-display text-xl">Contact Information</h2>
-                
-                <div className="grid gap-4">
-                  <div>
-                    <Label htmlFor="name">Full Name *</Label>
-                    <Input 
-                      id="name" 
-                      name="name" 
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required 
-                    />
+              <div className="bg-card rounded-xl border border-border/60 overflow-hidden">
+                <div className="flex items-center gap-3 px-6 py-4 bg-muted/30 border-b border-border/40">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Package className="w-5 h-5 text-primary" />
                   </div>
-                  
                   <div>
-                    <Label htmlFor="email">Email *</Label>
-                    <Input 
-                      id="email" 
-                      name="email" 
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required 
-                      disabled
-                    />
+                    <h2 className="font-serif text-lg">Contact Information</h2>
+                    <p className="text-xs text-muted-foreground">How can we reach you?</p>
+                  </div>
+                </div>
+                
+                <div className="p-6 space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-sm">Full Name *</Label>
+                      <Input 
+                        id="name" 
+                        name="name" 
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required 
+                        className="h-11"
+                        placeholder="Enter your name"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-sm">Email *</Label>
+                      <Input 
+                        id="email" 
+                        name="email" 
+                        type="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required 
+                        disabled
+                        className="h-11 bg-muted/50"
+                      />
+                    </div>
                   </div>
                   
                   {!hasProducts && (
-                    <div>
-                      <Label htmlFor="phone">Phone</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-sm">Phone</Label>
                       <Input 
                         id="phone" 
                         name="phone" 
                         type="tel"
                         value={formData.phone}
                         onChange={handleInputChange}
+                        className="h-11"
+                        placeholder="Your phone number"
                       />
                     </div>
                   )}
@@ -386,22 +425,27 @@ export default function Checkout() {
 
               {/* Shipping Address */}
               {hasProducts && (
-                <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="font-display text-xl flex items-center gap-2">
-                      <MapPin className="w-5 h-5" />
-                      Shipping Address
-                    </h2>
+                <div className="bg-card rounded-xl border border-border/60 overflow-hidden">
+                  <div className="flex items-center justify-between px-6 py-4 bg-muted/30 border-b border-border/40">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <MapPin className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h2 className="font-serif text-lg">Shipping Address</h2>
+                        <p className="text-xs text-muted-foreground">Where should we deliver?</p>
+                      </div>
+                    </div>
                     <Dialog open={showAddAddress} onOpenChange={setShowAddAddress}>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Plus className="w-4 h-4 mr-1" />
+                        <Button variant="outline" size="sm" className="gap-1.5">
+                          <Plus className="w-4 h-4" />
                           Add New
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                          <DialogTitle>Add New Address</DialogTitle>
+                          <DialogTitle className="font-serif">Add New Address</DialogTitle>
                         </DialogHeader>
                         <AddressForm
                           initialData={{ name: formData.name, phone: formData.phone }}
@@ -413,133 +457,228 @@ export default function Checkout() {
                     </Dialog>
                   </div>
                   
-                  {addressesLoading ? (
-                    <p className="text-muted-foreground">Loading addresses...</p>
-                  ) : addresses.length === 0 ? (
-                    <p className="text-muted-foreground text-sm">
-                      No saved addresses. Please add a shipping address.
-                    </p>
-                  ) : (
-                    <RadioGroup
-                      value={selectedAddressId || ''}
-                      onValueChange={setSelectedAddressId}
-                      className="space-y-3"
-                    >
-                      {addresses.map((address) => (
-                        <label
-                          key={address.id}
-                          htmlFor={`checkout-addr-${address.id}`}
-                          className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer transition-colors ${
-                            selectedAddressId === address.id 
-                              ? 'border-primary bg-primary/5' 
-                              : 'border-border hover:border-primary/50'
-                          }`}
-                        >
-                          <RadioGroupItem value={address.id} id={`checkout-addr-${address.id}`} className="mt-1" />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium">{address.label}</span>
-                              {address.is_default && (
-                                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Default</span>
-                              )}
+                  <div className="p-6">
+                    {addressesLoading ? (
+                      <div className="flex items-center gap-3 text-muted-foreground py-4">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Loading addresses...</span>
+                      </div>
+                    ) : addresses.length === 0 ? (
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                          <MapPin className="w-6 h-6 text-muted-foreground" />
+                        </div>
+                        <p className="text-muted-foreground mb-4">No saved addresses yet</p>
+                        <Button variant="outline" onClick={() => setShowAddAddress(true)} className="gap-2">
+                          <Plus className="w-4 h-4" />
+                          Add Your First Address
+                        </Button>
+                      </div>
+                    ) : (
+                      <RadioGroup
+                        value={selectedAddressId || ''}
+                        onValueChange={setSelectedAddressId}
+                        className="space-y-3"
+                      >
+                        {addresses.map((address) => (
+                          <label
+                            key={address.id}
+                            htmlFor={`checkout-addr-${address.id}`}
+                            className={`relative flex items-start gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 ${
+                              selectedAddressId === address.id 
+                                ? 'bg-primary/5 border-2 border-primary ring-4 ring-primary/10' 
+                                : 'bg-muted/30 border-2 border-transparent hover:bg-muted/50'
+                            }`}
+                          >
+                            <RadioGroupItem value={address.id} id={`checkout-addr-${address.id}`} className="mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-medium text-foreground">{address.label}</span>
+                                {address.is_default && (
+                                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Default</span>
+                                )}
+                              </div>
+                              <p className="text-sm font-medium text-foreground/80">{address.name} • {address.phone}</p>
+                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                {formatAddressString(address)}
+                              </p>
                             </div>
-                            <p className="text-sm font-medium">{address.name} • {address.phone}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {formatAddressString(address)}
-                            </p>
-                          </div>
-                        </label>
-                      ))}
-                    </RadioGroup>
-                  )}
+                            {selectedAddressId === address.id && (
+                              <div className="absolute top-3 right-3">
+                                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                                  <Check className="w-4 h-4 text-primary-foreground" />
+                                </div>
+                              </div>
+                            )}
+                          </label>
+                        ))}
+                      </RadioGroup>
+                    )}
+                  </div>
                 </div>
               )}
 
               {/* GST Details */}
-              <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-                <h2 className="font-display text-xl">GST Details (Optional)</h2>
+              <div className="bg-card rounded-xl border border-border/60 overflow-hidden">
+                <div className="flex items-center gap-3 px-6 py-4 bg-muted/30 border-b border-border/40">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="font-serif text-lg">GST Details</h2>
+                    <p className="text-xs text-muted-foreground">Optional - For business invoices</p>
+                  </div>
+                </div>
                 
-                <div>
-                  <Label htmlFor="gstNumber">GST Number</Label>
-                  <Input 
-                    id="gstNumber" 
-                    name="gstNumber"
-                    value={formData.gstNumber}
-                    onChange={handleInputChange}
-                    placeholder="For business invoices"
-                  />
+                <div className="p-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="gstNumber" className="text-sm">GST Number</Label>
+                    <Input 
+                      id="gstNumber" 
+                      name="gstNumber"
+                      value={formData.gstNumber}
+                      onChange={handleInputChange}
+                      placeholder="e.g., 22AAAAA0000A1Z5"
+                      className="h-11"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <Button 
-                type="submit" 
-                variant="earth" 
-                className="w-full" 
-                size="lg"
-                disabled={loading || (hasProducts && !selectedAddressId)}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  `Pay ₹${total.toLocaleString()}`
-                )}
-              </Button>
+              {/* Mobile Order Summary */}
+              <div className="lg:hidden bg-card rounded-xl border border-border/60 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-muted-foreground">Total</span>
+                  <span className="text-2xl font-serif text-primary">₹{total.toLocaleString()}</span>
+                </div>
+                <Button 
+                  type="submit" 
+                  variant="earth" 
+                  className="w-full h-12 text-base gap-2" 
+                  disabled={loading || (hasProducts && !selectedAddressId)}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4" />
+                      Pay ₹{total.toLocaleString()}
+                    </>
+                  )}
+                </Button>
+              </div>
             </motion.form>
 
-            {/* Order Summary */}
+            {/* Order Summary - Desktop */}
             <motion.div 
-              className="bg-card border border-border rounded-lg p-6 h-fit"
+              className="lg:col-span-2 hidden lg:block"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
             >
-              <h2 className="font-display text-xl mb-4">Order Summary</h2>
-              
-              <div className="space-y-4 mb-6">
-                {items.map(item => (
-                  <div key={item.id} className="flex items-center gap-3 text-sm">
-                    <div className="w-12 h-12 bg-muted rounded-md flex-shrink-0 overflow-hidden">
-                      {(item.product?.image_url || item.workshop?.image_url) ? (
-                        <img 
-                          src={item.product?.image_url || item.workshop?.image_url} 
-                          alt={item.product?.name || item.workshop?.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
-                          No img
+              <div className="bg-card border border-border rounded-xl overflow-hidden sticky top-24 shadow-sm">
+                <div className="px-6 py-4 bg-muted/30 border-b border-border/40">
+                  <h2 className="font-serif text-xl">Order Summary</h2>
+                </div>
+                
+                <div className="p-6">
+                  {/* Cart Items Preview */}
+                  <div className="space-y-4 mb-6">
+                    {items.slice(0, 3).map((item) => (
+                      <div key={item.id} className="flex gap-3">
+                        <div className="w-16 h-16 bg-muted rounded-lg flex-shrink-0 overflow-hidden">
+                          {(item.product?.image_url || item.workshop?.image_url) ? (
+                            <img 
+                              src={item.product?.image_url || item.workshop?.image_url} 
+                              alt={item.product?.name || item.workshop?.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Package className="w-5 h-5 text-muted-foreground" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-foreground truncate">{item.product?.name || item.workshop?.title}</p>
-                      <p className="text-muted-foreground text-xs">Qty: {item.quantity}</p>
-                    </div>
-                    <span className="font-medium">₹{((item.product?.price || item.workshop?.price || 0) * item.quantity).toLocaleString()}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground line-clamp-1">
+                            {item.product?.name || item.workshop?.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                          <p className="text-sm text-primary mt-1">
+                            ₹{((item.product?.price || item.workshop?.price || 0) * item.quantity).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {items.length > 3 && (
+                      <p className="text-sm text-muted-foreground text-center">
+                        +{items.length - 3} more item{items.length - 3 > 1 ? 's' : ''}
+                      </p>
+                    )}
                   </div>
-                ))}
-              </div>
 
-              <div className="space-y-3 text-sm border-t border-border pt-4">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>₹{subtotal.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <span>{shipping > 0 ? `₹${shipping.toLocaleString()}` : 'Free'}</span>
-                </div>
-                <div className="border-t border-border pt-3 flex justify-between font-medium text-base">
-                  <span>Total</span>
-                  <span className="text-primary">₹{total.toLocaleString()}</span>
+                  <div className="h-px bg-border mb-6" />
+                  
+                  {/* Price Breakdown */}
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span>₹{subtotal.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Shipping</span>
+                      <span className={shipping === 0 ? 'text-green-600' : ''}>
+                        {shipping > 0 ? `₹${shipping.toLocaleString()}` : 'Free'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="h-px bg-border my-4" />
+                  
+                  <div className="flex justify-between items-baseline mb-6">
+                    <span className="font-medium">Total</span>
+                    <div className="text-right">
+                      <span className="text-2xl font-serif text-primary">₹{total.toLocaleString()}</span>
+                      <p className="text-xs text-muted-foreground">Inclusive of GST</p>
+                    </div>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    form="checkout-form"
+                    variant="earth" 
+                    className="w-full h-12 text-base gap-2" 
+                    onClick={handleSubmit}
+                    disabled={loading || (hasProducts && !selectedAddressId)}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="w-4 h-4" />
+                        Pay ₹{total.toLocaleString()}
+                      </>
+                    )}
+                  </Button>
+
+                  {/* Trust Badges */}
+                  <div className="mt-6 pt-6 border-t border-border/50">
+                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                      <Shield className="w-4 h-4" />
+                      <span>Secure payment via Razorpay</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-4 mt-3 opacity-60">
+                      <img src="https://razorpay.com/assets/razorpay-glyph.svg" alt="Razorpay" className="h-5 grayscale" />
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <p className="text-xs text-muted-foreground text-center mt-6">
-                Secure payment powered by Razorpay
-              </p>
             </motion.div>
           </div>
         </div>
