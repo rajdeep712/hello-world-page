@@ -44,10 +44,10 @@ const ArrivalSection = () => {
             background: `
               radial-gradient(
                 ellipse 120% 100% at 50% 50%,
-                hsla(22, 35%, 10%, 0.55) 0%,
-                hsla(22, 40%, 8%, 0.70) 40%,
-                hsla(22, 43%, 6%, 0.80) 70%,
-                hsla(22, 43%, 5%, 0.88) 100%
+                hsla(22, 35%, 10%, 0.35) 0%,
+                hsla(22, 40%, 8%, 0.48) 40%,
+                hsla(22, 43%, 6%, 0.58) 70%,
+                hsla(22, 43%, 5%, 0.68) 100%
               )
             `
           }}
@@ -60,10 +60,10 @@ const ArrivalSection = () => {
             background: `
               linear-gradient(
                 to bottom,
-                hsla(22, 40%, 8%, 0.60) 0%,
-                hsla(22, 35%, 10%, 0.35) 30%,
-                hsla(22, 30%, 12%, 0.40) 60%,
-                hsla(22, 43%, 6%, 0.75) 100%
+                hsla(22, 40%, 8%, 0.40) 0%,
+                hsla(22, 35%, 10%, 0.20) 30%,
+                hsla(22, 30%, 12%, 0.25) 60%,
+                hsla(22, 43%, 6%, 0.55) 100%
               )
             `
           }}
@@ -77,7 +77,7 @@ const ArrivalSection = () => {
               radial-gradient(
                 ellipse 80% 80% at 50% 50%,
                 transparent 0%,
-                hsla(22, 43%, 5%, 0.30) 100%
+                hsla(22, 43%, 5%, 0.20) 100%
               )
             `
           }}
