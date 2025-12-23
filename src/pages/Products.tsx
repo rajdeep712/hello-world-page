@@ -81,7 +81,9 @@ const Products = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [isSearchInHeader, setIsSearchInHeader] = useState(false);
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const heroSearchRef = useRef<HTMLDivElement>(null);
+  const lastScrollY = useRef(0);
   const { addToCart } = useCart();
 
   // Track when hero search scrolls out of view
@@ -98,6 +100,30 @@ const Products = () => {
     }
 
     return () => observer.disconnect();
+  }, []);
+
+  // Track navbar visibility based on scroll direction
+  useEffect(() => {
+    const SCROLL_THRESHOLD = 100;
+    
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY < SCROLL_THRESHOLD) {
+        setIsNavbarVisible(true);
+      } else if (currentScrollY > lastScrollY.current) {
+        // Scrolling down
+        setIsNavbarVisible(false);
+      } else {
+        // Scrolling up
+        setIsNavbarVisible(true);
+      }
+      
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
 
@@ -272,7 +298,11 @@ const Products = () => {
           </section>
 
           {/* Category Filter */}
-          <section className="py-3 bg-background/80 backdrop-blur-md border-b border-border/50 sticky top-0 z-30">
+          <motion.section 
+            className="py-3 bg-background/80 backdrop-blur-md border-b border-border/50 sticky z-30"
+            animate={{ top: isNavbarVisible ? 56 : 0 }}
+            transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+          >
             <div className="container px-6">
               {/* All filters in one row */}
               <div className="flex items-center gap-3 flex-wrap lg:flex-nowrap">
@@ -335,7 +365,7 @@ const Products = () => {
                 </motion.div>
               </div>
             </div>
-          </section>
+          </motion.section>
 
           {/* Products Grid */}
           <section className="py-16 bg-background">
