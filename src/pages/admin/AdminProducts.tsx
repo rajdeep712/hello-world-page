@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, Package, Search, ImageIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Package, Search, ImageIcon, Upload, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Dialog,
@@ -80,6 +80,9 @@ const AdminProducts = () => {
   const [formData, setFormData] = useState<ProductFormData>(defaultFormData);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [isUploading, setIsUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
   const { data: products, isLoading } = useQuery({
@@ -169,6 +172,7 @@ const AdminProducts = () => {
   const handleOpenCreate = () => {
     setEditingProduct(null);
     setFormData(defaultFormData);
+    setImagePreview(null);
     setIsDialogOpen(true);
   };
 
@@ -183,6 +187,7 @@ const AdminProducts = () => {
       in_stock: product.in_stock ?? true,
       weight_kg: product.weight_kg?.toString() || '0.5',
     });
+    setImagePreview(product.image_url);
     setIsDialogOpen(true);
   };
 
@@ -190,7 +195,60 @@ const AdminProducts = () => {
     setIsDialogOpen(false);
     setEditingProduct(null);
     setFormData(defaultFormData);
+    setImagePreview(null);
   };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `products/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, image_url: publicUrl });
+      setImagePreview(publicUrl);
+      toast.success('Image uploaded successfully');
+    } catch (error: any) {
+      toast.error('Failed to upload image: ' + error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const removeImage = () => {
+    setFormData({ ...formData, image_url: '' });
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -288,16 +346,16 @@ const AdminProducts = () => {
             </p>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {filteredProducts?.map((product, index) => (
               <motion.div
                 key={product.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ delay: index * 0.02 }}
                 layout
-                className="group relative bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 hover:border-primary/20"
+                className="group relative bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:border-primary/20"
               >
                 {/* Product Image */}
                 <div className="aspect-square relative overflow-hidden bg-muted/30">
@@ -305,79 +363,65 @@ const AdminProducts = () => {
                     <img
                       src={product.image_url}
                       alt={product.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <ImageIcon className="h-16 w-16 text-muted-foreground/30" />
+                      <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
                     </div>
                   )}
                   
                   {/* Stock Badge */}
-                  <div className="absolute top-3 left-3">
+                  <div className="absolute top-1.5 left-1.5">
                     <Badge
                       variant={product.in_stock ? 'default' : 'destructive'}
-                      className={product.in_stock 
+                      className={`text-[10px] px-1.5 py-0 ${product.in_stock 
                         ? 'bg-emerald-500/90 hover:bg-emerald-500 text-white border-0' 
-                        : 'bg-red-500/90 hover:bg-red-500 text-white border-0'}
+                        : 'bg-red-500/90 hover:bg-red-500 text-white border-0'}`}
                     >
-                      {product.in_stock ? 'In Stock' : 'Out of Stock'}
+                      {product.in_stock ? 'In Stock' : 'Out'}
                     </Badge>
                   </div>
 
                   {/* Action Buttons Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute bottom-3 right-3 flex gap-2">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div className="absolute bottom-1.5 right-1.5 flex gap-1">
                       <Button
                         size="icon"
                         variant="secondary"
-                        className="h-9 w-9 bg-white/90 hover:bg-white text-foreground shadow-lg"
+                        className="h-7 w-7 bg-white/90 hover:bg-white text-foreground shadow-md"
                         onClick={() => handleOpenEdit(product)}
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-3 w-3" />
                       </Button>
                       <Button
                         size="icon"
                         variant="secondary"
-                        className="h-9 w-9 bg-white/90 hover:bg-red-500 hover:text-white text-foreground shadow-lg transition-colors"
+                        className="h-7 w-7 bg-white/90 hover:bg-red-500 hover:text-white text-foreground shadow-md transition-colors"
                         onClick={() => handleDelete(product.id)}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
                 </div>
 
                 {/* Product Info */}
-                <div className="p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-medium text-base line-clamp-1 group-hover:text-primary transition-colors">
-                      {product.name}
-                    </h3>
-                  </div>
+                <div className="p-2 space-y-1">
+                  <h3 className="font-medium text-xs line-clamp-1 group-hover:text-primary transition-colors">
+                    {product.name}
+                  </h3>
 
-                  <Badge 
-                    variant="outline" 
-                    className={`capitalize text-xs ${categoryColors[product.category] || ''}`}
-                  >
-                    {product.category}
-                  </Badge>
-
-                  {product.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {product.description}
-                    </p>
-                  )}
-
-                  <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                    <span className="text-lg font-semibold text-primary">
+                  <div className="flex items-center justify-between">
+                    <Badge 
+                      variant="outline" 
+                      className={`capitalize text-[9px] px-1 py-0 ${categoryColors[product.category] || ''}`}
+                    >
+                      {product.category}
+                    </Badge>
+                    <span className="text-xs font-semibold text-primary">
                       ₹{product.price.toLocaleString()}
                     </span>
-                    {product.weight_kg && (
-                      <span className="text-xs text-muted-foreground">
-                        {product.weight_kg} kg
-                      </span>
-                    )}
                   </div>
                 </div>
               </motion.div>
@@ -395,19 +439,57 @@ const AdminProducts = () => {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-5 pt-2">
-            {/* Image Preview */}
-            {formData.image_url && (
-              <div className="aspect-video relative rounded-xl overflow-hidden bg-muted/30 border border-border/50">
-                <img
-                  src={formData.image_url}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
+            {/* Image Upload Section */}
+            <div className="space-y-2">
+              <Label>Product Image</Label>
+              <div className="border-2 border-dashed border-border/50 rounded-xl p-4 transition-colors hover:border-primary/30">
+                {imagePreview ? (
+                  <div className="relative aspect-video rounded-lg overflow-hidden bg-muted/30">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                      onError={() => setImagePreview(null)}
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="destructive"
+                      className="absolute top-2 right-2 h-7 w-7"
+                      onClick={removeImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div
+                    className="flex flex-col items-center justify-center py-6 cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground text-center">
+                          Click to upload or drag and drop
+                        </p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">
+                          PNG, JPG up to 5MB
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
                 />
               </div>
-            )}
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="name">Product Name</Label>
@@ -480,11 +562,14 @@ const AdminProducts = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="image_url">Image URL</Label>
+              <Label htmlFor="image_url">Or paste Image URL</Label>
               <Input
                 id="image_url"
                 value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, image_url: e.target.value });
+                  setImagePreview(e.target.value || null);
+                }}
                 placeholder="https://example.com/image.jpg"
                 className="bg-background/50"
               />
