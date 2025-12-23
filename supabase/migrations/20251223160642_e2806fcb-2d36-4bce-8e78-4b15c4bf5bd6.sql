@@ -1,0 +1,21 @@
+-- Update product image URLs to use public folder paths
+UPDATE products SET image_url = '/images/products/bird-lid-storage-jars.jpg' WHERE name = 'Bird Lid Storage Jars';
+UPDATE products SET image_url = '/images/products/ceramic-grater-plates.jpg' WHERE name = 'Ceramic Grater Plates';
+UPDATE products SET image_url = '/images/products/cloud-serving-platters.jpg' WHERE name = 'Cloud Serving Platters';
+UPDATE products SET image_url = '/images/products/cupped-hands-sculpture.jpg' WHERE name = 'Cupped Hands Sculpture';
+UPDATE products SET image_url = '/images/products/earth-tone-serving-plates.jpg' WHERE name = 'Earth Tone Serving Plates';
+UPDATE products SET image_url = '/images/products/forest-green-tea-set.jpg' WHERE name = 'Forest Green Tea Set';
+UPDATE products SET image_url = '/images/products/fortune-cookie-keepsakes.jpg' WHERE name = 'Fortune Cookie Keepsakes';
+UPDATE products SET image_url = '/images/products/hexagonal-pastel-plates.jpg' WHERE name = 'Hexagonal Pastel Plates';
+UPDATE products SET image_url = '/images/products/indigo-planters.jpg' WHERE name = 'Indigo Planters';
+UPDATE products SET image_url = '/images/products/meadow-flower-mugs.jpg' WHERE name = 'Meadow Flower Mugs';
+UPDATE products SET image_url = '/images/products/minimalist-cream-mugs.jpg' WHERE name = 'Minimalist Cream Mugs';
+UPDATE products SET image_url = '/images/products/ocean-blue-mugs.jpg' WHERE name = 'Ocean Blue Mugs';
+UPDATE products SET image_url = '/images/products/ocean-palette-bowls.jpg' WHERE name = 'Ocean Palette Bowls';
+UPDATE products SET image_url = '/images/products/organic-edge-platters.jpg' WHERE name = 'Organic Edge Platters';
+UPDATE products SET image_url = '/images/products/praying-hands-collection.jpg' WHERE name = 'Praying Hands Collection';
+UPDATE products SET image_url = '/images/products/ribbed-dual-tone-bowls.jpg' WHERE name = 'Ribbed Dual-Tone Bowls';
+UPDATE products SET image_url = '/images/products/rustic-duo-mug-set.jpg' WHERE name = 'Rustic Duo Mug Set';
+UPDATE products SET image_url = '/images/products/songbird-tea-set.jpg' WHERE name = 'Songbird Tea Set';
+UPDATE products SET image_url = '/images/products/terracotta-fruit-bowls.jpg' WHERE name = 'Terracotta Fruit Bowls';
+UPDATE products SET image_url = '/images/products/turquoise-geometric-mugs.jpg' WHERE name = 'Turquoise Geometric Mugs';
