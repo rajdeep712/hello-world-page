@@ -80,7 +80,7 @@ const Products = () => {
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 50000]);
+  
   const [isSearchInHeader, setIsSearchInHeader] = useState(false);
   const heroSearchRef = useRef<HTMLDivElement>(null);
   const { addToCart } = useCart();
@@ -101,22 +101,6 @@ const Products = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Calculate min/max prices from products
-  const { minPrice, maxPrice } = useMemo(() => {
-    if (products.length === 0) return { minPrice: 0, maxPrice: 50000 };
-    const prices = products.map(p => Number(p.price));
-    return {
-      minPrice: Math.floor(Math.min(...prices) / 100) * 100,
-      maxPrice: Math.ceil(Math.max(...prices) / 100) * 100,
-    };
-  }, [products]);
-
-  // Initialize price range when products load
-  useEffect(() => {
-    if (products.length > 0) {
-      setPriceRange([minPrice, maxPrice]);
-    }
-  }, [minPrice, maxPrice, products.length]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -156,11 +140,6 @@ const Products = () => {
       );
     }
 
-    // Filter by price range
-    result = result.filter(p => {
-      const price = Number(p.price);
-      return price >= priceRange[0] && price <= priceRange[1];
-    });
 
     // Sort products
     result = [...result].sort((a, b) => {
@@ -182,7 +161,7 @@ const Products = () => {
     });
     
     return result;
-  }, [products, activeCategory, searchQuery, priceRange, sortBy]);
+  }, [products, activeCategory, searchQuery, sortBy]);
 
   const handleAddToCart = async (product: Product) => {
     setAddingToCart(product.id);
@@ -326,10 +305,6 @@ const Products = () => {
               {/* Filters Row */}
               <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
                 <ProductFilters
-                  minPrice={minPrice}
-                  maxPrice={maxPrice}
-                  priceRange={priceRange}
-                  onPriceRangeChange={setPriceRange}
                   sortBy={sortBy}
                   onSortChange={setSortBy}
                 />
