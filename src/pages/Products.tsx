@@ -290,77 +290,76 @@ const Products = () => {
           </section>
 
           {/* Category Filter */}
-          <section className="py-3 bg-background/95 backdrop-blur-md border-b border-border/50 sticky top-0 z-30 shadow-sm">
-            <div className="container px-6 space-y-3">
-              {/* Category Pills & Filters Row */}
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                {/* Category Pills */}
-                <div className="flex flex-wrap gap-1.5">
-                  {categories.map((cat, index) => (
-                    <motion.button
-                      key={cat}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.03 }}
-                      onClick={() => setActiveCategory(cat)}
-                      className={`
-                        relative font-sans text-xs tracking-wide px-3.5 py-1.5 rounded-full 
-                        transition-all duration-300 capitalize overflow-hidden
-                        ${activeCategory === cat
-                          ? "bg-primary text-primary-foreground shadow-warm"
-                          : "bg-card/70 text-foreground/80 border border-border/50 hover:border-primary/30 hover:bg-card"
-                        }
-                      `}
-                    >
-                      {/* Active indicator glow */}
-                      {activeCategory === cat && (
-                        <motion.div
-                          layoutId="activeCategoryGlow"
-                          className="absolute inset-0 bg-gradient-to-r from-primary via-terracotta to-primary rounded-full -z-10"
-                          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                        />
-                      )}
-                      <span className="relative z-10">{cat}</span>
-                    </motion.button>
-                  ))}
-                </div>
-                
-                {/* Filters & Search */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <ProductFilters
-                    minPrice={minPrice}
-                    maxPrice={maxPrice}
-                    priceRange={priceRange}
-                    onPriceRangeChange={setPriceRange}
-                    sortBy={sortBy}
-                    onSortChange={setSortBy}
-                  />
-                  
-                  {/* Search bar moves here when scrolled */}
-                  <motion.div
-                    initial={false}
-                    animate={{ 
-                      opacity: isSearchInHeader ? 1 : 0,
-                      scale: isSearchInHeader ? 1 : 0.95,
-                      width: isSearchInHeader ? "auto" : 0
-                    }}
-                    transition={{ duration: 0.2 }}
-                    className={`${isSearchInHeader ? "block" : "hidden"} lg:min-w-[280px]`}
+          <section className="py-5 bg-background/80 backdrop-blur-md border-b border-border/50 sticky top-0 z-30">
+            <div className="container px-6 space-y-5">
+              {/* Category Pills */}
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat, index) => (
+                  <motion.button
+                    key={cat}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`
+                      relative font-sans text-sm tracking-wide px-5 py-2.5 rounded-full 
+                      transition-all duration-300 capitalize overflow-hidden
+                      ${activeCategory === cat
+                        ? "bg-primary text-primary-foreground shadow-warm"
+                        : "bg-card/70 text-foreground/80 border border-border/50 hover:border-primary/30 hover:bg-card"
+                      }
+                    `}
                   >
-                    <ProductSearch 
-                      onSearch={setSearchQuery} 
-                      productImages={productImages} 
-                    />
-                  </motion.div>
-                  
-                  {/* Results count - inline */}
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    <span className="font-medium text-foreground">{filteredProducts.length}</span> {filteredProducts.length === 1 ? 'product' : 'products'}
-                    {activeCategory !== "All" && (
-                      <span className="hidden sm:inline"> in <span className="text-primary capitalize">{activeCategory}</span></span>
+                    {/* Active indicator glow */}
+                    {activeCategory === cat && (
+                      <motion.div
+                        layoutId="activeCategoryGlow"
+                        className="absolute inset-0 bg-gradient-to-r from-primary via-terracotta to-primary rounded-full -z-10"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
                     )}
-                  </span>
-                </div>
+                    <span className="relative z-10">{cat}</span>
+                  </motion.button>
+                ))}
+              </div>
+              
+              {/* Filters Row */}
+              <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+                <ProductFilters
+                  minPrice={minPrice}
+                  maxPrice={maxPrice}
+                  priceRange={priceRange}
+                  onPriceRangeChange={setPriceRange}
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
+                />
+                
+                {/* Search bar moves here when scrolled */}
+                <motion.div
+                  initial={false}
+                  animate={{ 
+                    opacity: isSearchInHeader ? 1 : 0,
+                    scale: isSearchInHeader ? 1 : 0.95,
+                    width: isSearchInHeader ? "auto" : 0
+                  }}
+                  transition={{ duration: 0.2 }}
+                  className={`${isSearchInHeader ? "block" : "hidden"} lg:min-w-[300px]`}
+                >
+                  <ProductSearch 
+                    onSearch={setSearchQuery} 
+                    productImages={productImages} 
+                  />
+                </motion.div>
+              </div>
+              
+              {/* Results count */}
+              <div className="flex items-center gap-2 pt-1">
+                <span className="text-sm text-muted-foreground">
+                  Showing <span className="font-medium text-foreground">{filteredProducts.length}</span> {filteredProducts.length === 1 ? 'product' : 'products'}
+                  {activeCategory !== "All" && (
+                    <span> in <span className="font-medium text-primary capitalize">{activeCategory}</span></span>
+                  )}
+                </span>
               </div>
             </div>
           </section>
