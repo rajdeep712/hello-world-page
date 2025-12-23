@@ -299,7 +299,9 @@ const Products = () => {
 
           {/* Category Filter */}
           <motion.section 
-            className="py-3 bg-background/80 backdrop-blur-md border-b border-border/50 sticky z-30"
+            className={`py-3 backdrop-blur-md border-b border-border/50 sticky z-30 transition-colors duration-500 ${
+              isNavbarVisible ? 'bg-parchment/90' : 'bg-background/80'
+            }`}
             animate={{ top: isNavbarVisible ? 56 : 0 }}
             transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
           >
