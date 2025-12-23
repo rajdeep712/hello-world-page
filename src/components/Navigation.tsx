@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, User, LogOut, Shield, Package, UserCircle, Heart } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -30,6 +30,13 @@ const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const [isCompact, setIsCompact] = useState(false);
+  
+  // Refs for scroll intent detection
+  const lastScrollY = useRef(0);
+  const scrollBuffer = useRef<number[]>([]);
+  const hideTimeout = useRef<NodeJS.Timeout | null>(null);
+  
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut, loading } = useAuth();
@@ -38,54 +45,90 @@ const Navigation = () => {
   const isHomePage = location.pathname === "/";
 
   useEffect(() => {
-    let lastScrollY = window.scrollY;
-    let ticking = false;
+    // Configuration for refined scroll behavior
+    const SCROLL_THRESHOLD = 100; // Min scroll before hiding (inner pages)
+    const INTENT_SAMPLES = 5; // Samples for detecting scroll intent
+    const INTENT_MIN_DELTA = 25; // Minimum cumulative upward scroll to show
+    const HIDE_DELAY = 150; // Delay before hiding to prevent jitter
+    const COMPACT_THRESHOLD = 200; // When to shrink navbar on inner pages
     
     const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY;
-          
-          // Update scrolled state for styling
-          setScrolled(currentScrollY > 50);
-          
-          if (isHomePage) {
-            const viewportHeight = window.innerHeight;
-            const scrollThreshold = viewportHeight * 0.8;
-            
-            // On home page: just show/hide based on hero scroll position
-            setIsVisible(currentScrollY >= scrollThreshold);
-          } else {
-            // On other pages: show on scroll up, hide on scroll down
-            if (currentScrollY < 100) {
-              // Always show near top
-              setIsVisible(true);
-            } else if (currentScrollY < lastScrollY - 2) {
-              // Scrolling up - show navbar (lower threshold = faster response)
-              setIsVisible(true);
-            } else if (currentScrollY > lastScrollY + 10) {
-              // Scrolling down - hide navbar (higher threshold = less sensitive)
-              setIsVisible(false);
-            }
-          }
-          
-          lastScrollY = currentScrollY;
-          ticking = false;
-        });
-        ticking = true;
+      const currentScrollY = window.scrollY;
+      const scrollDelta = currentScrollY - lastScrollY.current;
+      
+      // Track scroll pattern for intent detection
+      scrollBuffer.current.push(scrollDelta);
+      if (scrollBuffer.current.length > INTENT_SAMPLES) {
+        scrollBuffer.current.shift();
       }
+      
+      // Calculate average scroll direction (intent)
+      const avgIntent = scrollBuffer.current.length > 0 
+        ? scrollBuffer.current.reduce((a, b) => a + b, 0) / scrollBuffer.current.length
+        : 0;
+      
+      // Update scrolled state for background styling
+      setScrolled(currentScrollY > 50);
+      
+      // Compact mode for inner pages (slight shrink when scrolled)
+      if (!isHomePage && currentScrollY > COMPACT_THRESHOLD) {
+        setIsCompact(true);
+      } else {
+        setIsCompact(false);
+      }
+      
+      // Homepage: Never hide, always visible
+      if (isHomePage) {
+        setIsVisible(true);
+        if (hideTimeout.current) {
+          clearTimeout(hideTimeout.current);
+          hideTimeout.current = null;
+        }
+        lastScrollY.current = currentScrollY;
+        return;
+      }
+      
+      // Inner pages: Smart hide/show with intent detection
+      if (currentScrollY < SCROLL_THRESHOLD) {
+        // Near top: always show immediately
+        setIsVisible(true);
+        if (hideTimeout.current) {
+          clearTimeout(hideTimeout.current);
+          hideTimeout.current = null;
+        }
+      } else if (scrollDelta > 0 && avgIntent > 3) {
+        // Scrolling down with clear intent: hide with delay (prevents jitter)
+        if (!hideTimeout.current) {
+          hideTimeout.current = setTimeout(() => {
+            setIsVisible(false);
+            hideTimeout.current = null;
+          }, HIDE_DELAY);
+        }
+      } else if (scrollDelta < -3 && avgIntent < -INTENT_MIN_DELTA / INTENT_SAMPLES) {
+        // Scrolling up with intentional motion: show immediately
+        if (hideTimeout.current) {
+          clearTimeout(hideTimeout.current);
+          hideTimeout.current = null;
+        }
+        setIsVisible(true);
+      }
+      
+      lastScrollY.current = currentScrollY;
     };
 
-    // Initialize
-    if (isHomePage) {
-      setIsVisible(window.scrollY >= window.innerHeight * 0.8);
-    } else {
-      setIsVisible(true);
-    }
+    // Initialize state
     setScrolled(window.scrollY > 50);
+    setIsVisible(true);
+    lastScrollY.current = window.scrollY;
+    scrollBuffer.current = [];
     
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (hideTimeout.current) {
+        clearTimeout(hideTimeout.current);
+      }
+    };
   }, [isHomePage]);
 
   useEffect(() => {
@@ -97,30 +140,54 @@ const Navigation = () => {
     navigate("/");
   };
 
+  // Check if link is active (for subtle indicator)
+  const isActiveLink = (path: string) => {
+    if (path === '/products') {
+      return location.pathname === '/products' || location.pathname.startsWith('/products/');
+    }
+    return location.pathname === path;
+  };
+
   return (
     <>
-      <AnimatePresence>
-        {isVisible && (
-          <motion.header
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -100, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-            className={`fixed z-50 inset-x-0 mx-auto transition-all duration-700 max-w-5xl w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] rounded-full ${
-              scrolled
-                ? "top-3 bg-parchment/80 backdrop-blur-md border border-border/50 shadow-soft"
-                : "top-6 bg-parchment/60 backdrop-blur-sm border border-border/30"
-            }`}
-          >
-            <nav className="px-4 md:px-6 py-2 flex items-center justify-between">
-              <Link to="/" className="flex items-center">
-                <motion.img 
-                  src={logo} 
-                  alt="Basho by Shivangi" 
-                  className="h-6 md:h-8 w-auto"
-                  whileHover={{ opacity: 0.8 }}
-                  transition={{ duration: 0.3 }}
-                />
+      <motion.header
+        initial={{ y: 0, opacity: 1 }}
+        animate={{ 
+          y: isVisible ? 0 : -100, 
+          opacity: isVisible ? 1 : 0,
+        }}
+        transition={{ 
+          duration: 0.4, 
+          ease: [0.25, 0.1, 0.25, 1] 
+        }}
+        className={`fixed z-50 inset-x-0 mx-auto transition-all max-w-5xl w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] rounded-full ${
+          scrolled
+            ? "top-3 bg-parchment/90 backdrop-blur-md border border-border/40"
+            : isHomePage
+            ? "top-6 bg-parchment/50 backdrop-blur-sm border border-border/20"
+            : "top-6 bg-parchment/70 backdrop-blur-sm border border-border/30"
+        }`}
+        style={{
+          // Extremely subtle shadow when scrolled, or none (craft-brand aesthetic)
+          boxShadow: scrolled ? '0 2px 12px rgba(0,0,0,0.03)' : 'none',
+          // Slight shrink on inner pages when scrolled
+          transform: isCompact && !isHomePage ? 'scale(0.97)' : undefined,
+          transition: 'transform 0.3s ease, box-shadow 0.5s ease',
+        }}
+      >
+        <nav className={`px-4 md:px-6 flex items-center justify-between transition-all duration-300 ${
+          isCompact ? 'py-1.5' : 'py-2'
+        }`}>
+          <Link to="/" className="flex items-center">
+            <motion.img 
+              src={logo} 
+              alt="Basho by Shivangi" 
+              className={`w-auto transition-all duration-300 ${
+                isCompact ? 'h-5 md:h-6' : 'h-6 md:h-8'
+              }`}
+              whileHover={{ opacity: 0.8 }}
+              transition={{ duration: 0.3 }}
+            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -130,17 +197,19 @@ const Navigation = () => {
                 <li key={link.name}>
                   <Link
                     to={link.path}
-                    className={`font-sans text-sm font-medium tracking-wide transition-all duration-300 relative ${
-                      location.pathname === link.path
-                        ? "text-primary font-semibold"
-                        : "text-deep-clay hover:text-primary"
+                    className={`font-sans text-sm font-medium tracking-wide transition-all duration-200 relative ${
+                      isActiveLink(link.path)
+                        ? "text-primary"
+                        : "text-deep-clay/80 hover:text-deep-clay"
                     }`}
                   >
                     {link.name}
-                    {location.pathname === link.path && (
+                    {/* Subtle active indicator - small dot instead of underline */}
+                    {isActiveLink(link.path) && (
                       <motion.span
-                        layoutId="navUnderline"
-                        className="absolute -bottom-1 left-0 right-0 h-px bg-primary"
+                        layoutId="activeNav"
+                        className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/70"
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
                       />
                     )}
                   </Link>
@@ -148,7 +217,7 @@ const Navigation = () => {
               ))}
             </ul>
             
-            <div className="flex items-center gap-2 ml-4 border-l border-border pl-6">
+            <div className="flex items-center gap-2 ml-4 border-l border-border/50 pl-6">
               <WishlistNavButton />
               <CartButton />
               {!loading && (
@@ -158,7 +227,7 @@ const Navigation = () => {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="rounded-full hover:bg-muted transition-all duration-300"
+                        className="rounded-full hover:bg-muted/50 transition-all duration-300"
                       >
                         <User className="h-4 w-4" />
                       </Button>
@@ -197,7 +266,7 @@ const Navigation = () => {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-sm tracking-wide font-normal hover:bg-muted"
+                      className="text-sm tracking-wide font-normal hover:bg-muted/50"
                     >
                       Sign In
                     </Button>
@@ -265,9 +334,7 @@ const Navigation = () => {
             </button>
           </div>
         </nav>
-          </motion.header>
-        )}
-      </AnimatePresence>
+      </motion.header>
 
       {/* Mobile Menu */}
       <AnimatePresence>
@@ -301,12 +368,16 @@ const Navigation = () => {
                     >
                       <Link
                         to={link.path}
-                        className={`font-serif text-2xl transition-colors duration-300 block ${
-                          location.pathname === link.path
+                        className={`font-serif text-2xl transition-colors duration-300 flex items-center gap-3 ${
+                          isActiveLink(link.path)
                             ? "text-primary"
                             : "text-foreground/70 hover:text-foreground"
                         }`}
                       >
+                        {/* Subtle dot indicator for mobile active link */}
+                        {isActiveLink(link.path) && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary/70 flex-shrink-0" />
+                        )}
                         {link.name}
                       </Link>
                     </motion.li>
