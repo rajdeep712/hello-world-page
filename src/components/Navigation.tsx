@@ -175,12 +175,26 @@ const Navigation = () => {
           boxShadow: scrolled ? '0 2px 12px rgba(0,0,0,0.03)' : 'none',
         }}
       >
-        {/* Particle texture overlay */}
+        {/* Enhanced grain texture overlay */}
         <div 
-          className="absolute inset-0 pointer-events-none opacity-[0.03]"
+          className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${
+            scrolled ? 'opacity-[0.08]' : 'opacity-[0.05]'
+          }`}
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-            backgroundSize: '150px 150px',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+            backgroundSize: '120px 120px',
+            mixBlendMode: 'overlay',
+          }}
+        />
+        {/* Secondary fine grain layer for depth */}
+        <div 
+          className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${
+            scrolled ? 'opacity-[0.04]' : 'opacity-[0.025]'
+          }`}
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='fineGrain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23fineGrain)'/%3E%3C/svg%3E")`,
+            backgroundSize: '80px 80px',
+            mixBlendMode: 'multiply',
           }}
         />
         {/* Scattered particle dots */}
