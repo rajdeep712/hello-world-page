@@ -205,62 +205,88 @@ const Workshops = () => {
           </section>
 
           {/* Category Highlights */}
-          <section className="py-20 bg-card">
-            <div className="container px-6">
+          <section className="py-24 bg-gradient-to-b from-card via-card to-background relative overflow-hidden">
+            {/* Decorative Background */}
+            <div className="absolute inset-0 opacity-[0.03]">
+              <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full bg-primary blur-3xl" />
+              <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full bg-primary blur-3xl" />
+            </div>
+            
+            <div className="container px-6 relative">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-center mb-16"
+              >
+                <span className="inline-block text-xs tracking-[0.3em] uppercase text-primary/80 mb-3">
+                  Curated Experiences
+                </span>
+                <h2 className="font-serif text-3xl md:text-4xl text-foreground">
+                  Find Your Perfect Workshop
+                </h2>
+              </motion.div>
+              
               <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
                 {/* Group Workshops */}
                 <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6 }}
-                  className="relative bg-background rounded-lg p-8 border border-border/50 group hover:border-primary/30 transition-colors"
+                  className="relative bg-background rounded-2xl p-8 border border-border/30 group hover:border-primary/40 transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(139,115,85,0.12)]"
                 >
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Users className="w-6 h-6 text-primary" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                    <Users className="w-7 h-7 text-primary" />
                   </div>
-                  <h3 className="font-serif text-2xl text-foreground mb-2">Group Workshops</h3>
-                  <p className="text-muted-foreground mb-4">
+                  <h3 className="font-serif text-2xl text-foreground mb-3">Group Workshops</h3>
+                  <p className="text-muted-foreground leading-relaxed mb-6">
                     Learn alongside fellow enthusiasts in our guided group sessions. 
                     Perfect for beginners and those who love shared creative experiences.
                   </p>
                   <Button 
-                    variant="link" 
-                    className="p-0 h-auto text-primary gap-2"
+                    variant="ghost" 
+                    className="p-0 h-auto text-primary gap-2 group/btn hover:bg-transparent"
                     onClick={() => {
                       setActiveTab('group');
                       document.getElementById('workshops')?.scrollIntoView({ behavior: 'smooth' });
                     }}
                   >
-                    View Group Workshops <ArrowRight className="w-4 h-4" />
+                    View Group Workshops 
+                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                   </Button>
                 </motion.div>
 
                 {/* One-on-One */}
                 <motion.div
-                  initial={{ opacity: 0, x: 30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.6 }}
-                  className="relative bg-background rounded-lg p-8 border border-border/50 group hover:border-primary/30 transition-colors"
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                  className="relative bg-background rounded-2xl p-8 border border-border/30 group hover:border-primary/40 transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(139,115,85,0.12)]"
                 >
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Sparkles className="w-6 h-6 text-primary" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                    <Sparkles className="w-7 h-7 text-primary" />
                   </div>
-                  <h3 className="font-serif text-2xl text-foreground mb-2">One-on-One Sessions</h3>
-                  <p className="text-muted-foreground mb-4">
+                  <h3 className="font-serif text-2xl text-foreground mb-3">One-on-One Sessions</h3>
+                  <p className="text-muted-foreground leading-relaxed mb-6">
                     Personalized instruction tailored to your pace and interests. 
                     Deep dive into techniques with dedicated attention from our artists.
                   </p>
                   <Button 
-                    variant="link" 
-                    className="p-0 h-auto text-primary gap-2"
+                    variant="ghost" 
+                    className="p-0 h-auto text-primary gap-2 group/btn hover:bg-transparent"
                     onClick={() => {
                       setActiveTab('private');
                       document.getElementById('workshops')?.scrollIntoView({ behavior: 'smooth' });
                     }}
                   >
-                    View Private Sessions <ArrowRight className="w-4 h-4" />
+                    View Private Sessions 
+                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                   </Button>
                 </motion.div>
               </div>
@@ -268,49 +294,82 @@ const Workshops = () => {
           </section>
 
           {/* Workshops Grid */}
-          <section id="workshops" className="py-20 bg-background scroll-mt-20">
-            <div className="container px-6">
+          <section id="workshops" className="py-24 bg-background scroll-mt-20 relative">
+            {/* Subtle texture */}
+            <div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,_hsl(var(--foreground))_1px,_transparent_0)] bg-[size:32px_32px]" />
+            
+            <div className="container px-6 relative">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="text-center mb-12"
+                className="text-center mb-14"
               >
-                <span className="text-xs tracking-[0.2em] uppercase text-primary mb-2 block">
+                <span className="inline-block text-xs tracking-[0.3em] uppercase text-primary/80 mb-3">
                   Choose Your Experience
                 </span>
-                <h2 className="font-serif text-3xl md:text-4xl text-foreground">
+                <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground">
                   Available Workshops
                 </h2>
               </motion.div>
 
               {/* Tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full max-w-md mx-auto grid-cols-4 mb-10">
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  <TabsTrigger value="group">Group</TabsTrigger>
-                  <TabsTrigger value="private">Private</TabsTrigger>
-                  <TabsTrigger value="couple">Couples</TabsTrigger>
-                </TabsList>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <TabsList className="grid w-full max-w-lg mx-auto grid-cols-4 mb-14 bg-muted/50 p-1.5 rounded-full h-auto">
+                    <TabsTrigger 
+                      value="all" 
+                      className="rounded-full py-2.5 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+                    >
+                      All
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="group"
+                      className="rounded-full py-2.5 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+                    >
+                      Group
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="private"
+                      className="rounded-full py-2.5 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+                    >
+                      Private
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="couple"
+                      className="rounded-full py-2.5 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+                    >
+                      Couples
+                    </TabsTrigger>
+                  </TabsList>
+                </motion.div>
 
                 <TabsContent value={activeTab} className="mt-0">
                   {loading ? (
                     <WorkshopGridSkeleton count={4} />
                   ) : filteredWorkshops.length === 0 ? (
                     <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-center py-16"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="text-center py-20 px-6 bg-card/50 rounded-2xl border border-border/30"
                     >
-                      <p className="text-muted-foreground mb-4">
-                        No workshops available in this category right now.
+                      <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-muted/50 flex items-center justify-center">
+                        <Sparkles className="w-8 h-8 text-muted-foreground/50" />
+                      </div>
+                      <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                        No workshops available in this category right now. Check back soon or explore other options!
                       </p>
-                      <Button variant="outline" onClick={() => setActiveTab('all')}>
+                      <Button variant="outline" onClick={() => setActiveTab('all')} className="rounded-full">
                         View All Workshops
                       </Button>
                     </motion.div>
                   ) : (
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                       {filteredWorkshops.map((workshop, index) => (
                         <WorkshopCard
                           key={workshop.id}
@@ -328,22 +387,33 @@ const Workshops = () => {
           </section>
 
           {/* Registration CTA */}
-          <section className="py-20 bg-charcoal text-cream">
-            <div className="container px-6">
+          <section className="py-24 bg-charcoal text-cream relative overflow-hidden">
+            {/* Decorative elements */}
+            <div className="absolute inset-0">
+              <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cream/20 to-transparent" />
+              <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cream/20 to-transparent" />
+              <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 rounded-full bg-cream/5 blur-3xl" />
+              <div className="absolute top-1/2 right-0 -translate-y-1/2 w-64 h-64 rounded-full bg-cream/5 blur-3xl" />
+            </div>
+            
+            <div className="container px-6 relative">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="max-w-3xl mx-auto text-center"
+                className="max-w-4xl mx-auto text-center"
               >
-                <span className="text-xs tracking-[0.2em] uppercase text-cream/60 mb-4 block">
-                  Registration Process
+                <span className="inline-block text-xs tracking-[0.3em] uppercase text-cream/50 mb-4">
+                  Simple Process
                 </span>
-                <h2 className="font-serif text-3xl md:text-4xl text-cream mb-6">
+                <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-cream mb-6">
                   How to Book Your Session
                 </h2>
+                <p className="text-cream/60 max-w-xl mx-auto mb-16">
+                  Reserve your spot in just a few clicks and embark on your pottery journey
+                </p>
                 
-                <div className="grid md:grid-cols-3 gap-8 mt-12">
+                <div className="grid md:grid-cols-3 gap-12 md:gap-8">
                   {[
                     { step: "01", title: "Select Workshop", desc: "Browse our offerings and find the perfect session for you" },
                     { step: "02", title: "Choose Your Slot", desc: "Pick a date and time that works with your schedule" },
@@ -351,15 +421,22 @@ const Workshops = () => {
                   ].map((item, i) => (
                     <motion.div
                       key={item.step}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: i * 0.1 }}
-                      className="text-left"
+                      transition={{ delay: i * 0.15 }}
+                      className="relative text-center md:text-left group"
                     >
-                      <span className="text-4xl font-serif text-cream/20">{item.step}</span>
-                      <h3 className="font-serif text-xl text-cream mt-2 mb-2">{item.title}</h3>
-                      <p className="text-cream/60 text-sm">{item.desc}</p>
+                      {/* Connector line for desktop */}
+                      {i < 2 && (
+                        <div className="hidden md:block absolute top-8 left-1/2 w-full h-px bg-gradient-to-r from-cream/20 to-transparent" />
+                      )}
+                      
+                      <div className="relative inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-cream/10 border border-cream/20 mb-6 group-hover:bg-cream/15 transition-colors">
+                        <span className="text-2xl font-serif text-cream/80">{item.step}</span>
+                      </div>
+                      <h3 className="font-serif text-xl text-cream mb-3">{item.title}</h3>
+                      <p className="text-cream/50 text-sm leading-relaxed">{item.desc}</p>
                     </motion.div>
                   ))}
                 </div>
