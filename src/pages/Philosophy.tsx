@@ -63,7 +63,7 @@ const Philosophy = () => {
   }, []);
 
   return (
-    <>
+    <div className="min-h-screen bg-sand">
       <Helmet>
         <title>Philosophy | Basho - Wabi-Sabi Pottery</title>
         <meta
@@ -283,7 +283,7 @@ const Philosophy = () => {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 };
 

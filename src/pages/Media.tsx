@@ -222,7 +222,7 @@ const Media = () => {
   const closeLightbox = () => setLightboxItem(null);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-sand">
       <Helmet>
         <title>Gallery | Basho by Shivangi</title>
         <meta 
@@ -233,7 +233,7 @@ const Media = () => {
 
       <Navigation />
 
-      <main>
+      <main className="bg-background">
         {/* ===== ELEGANT TEXT HEADER ===== */}
         <section className="pt-32 pb-16 md:pt-40 md:pb-24 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">

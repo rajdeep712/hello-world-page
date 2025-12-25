@@ -305,7 +305,7 @@ export default function Checkout() {
   const selectedAddress = getSelectedAddress();
 
   return (
-    <>
+    <div className="min-h-screen bg-sand">
       <Helmet>
         <title>Checkout | Basho by Shivangi</title>
         <meta name="description" content="Complete your purchase securely." />
@@ -685,6 +685,6 @@ export default function Checkout() {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 }

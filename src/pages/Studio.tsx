@@ -67,7 +67,7 @@ const Studio = () => {
         />
       </Helmet>
 
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-deep-clay">
         <Navigation />
         
         {/* Cinematic Hero Section */}

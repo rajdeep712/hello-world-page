@@ -733,7 +733,7 @@ const Experiences = () => {
   }, [location.hash]);
 
   return (
-    <>
+    <div className="min-h-screen bg-deep-clay">
       <Helmet>
         <title>Experiences | Basho by Shivangi - Create Moments with Clay</title>
         <meta
@@ -902,7 +902,7 @@ const Experiences = () => {
       <ExperiencesFAQ />
 
       <Footer />
-    </>
+    </div>
   );
 };
 

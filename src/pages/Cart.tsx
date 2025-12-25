@@ -51,7 +51,7 @@ export default function Cart() {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-sand">
       <Helmet>
         <title>Cart | Basho by Shivangi</title>
         <meta name="description" content="Review your cart and proceed to checkout." />
@@ -350,6 +350,6 @@ export default function Cart() {
         title="Sign in to checkout"
         description="Create an account or sign in to complete your purchase"
       />
-    </>
+    </div>
   );
 }

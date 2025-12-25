@@ -171,7 +171,7 @@ export default function Profile() {
   const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
 
   return (
-    <>
+    <div className="min-h-screen bg-sand">
       <Helmet>
         <title>My Profile | Basho by Shivangi</title>
         <meta name="description" content="Manage your profile and addresses" />
@@ -179,7 +179,7 @@ export default function Profile() {
 
       <Navigation />
 
-      <main className="min-h-screen bg-background">
+      <main className="min-h-screen bg-background pt-8">
         {/* Hero Section */}
         <section className="relative pt-32 pb-16 overflow-hidden">
           {/* Background decoration */}
@@ -531,6 +531,6 @@ export default function Profile() {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 }

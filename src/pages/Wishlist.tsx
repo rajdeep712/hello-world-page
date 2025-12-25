@@ -45,7 +45,7 @@ export default function Wishlist() {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-sand">
       <Helmet>
         <title>Wishlist | Basho by Shivangi</title>
         <meta name="description" content="Your saved items - handcrafted pottery pieces you love." />
@@ -191,6 +191,6 @@ export default function Wishlist() {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 }

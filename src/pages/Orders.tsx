@@ -189,7 +189,7 @@ export default function Orders() {
   const hasNoOrders = orders.length === 0 && customOrders.length === 0 && experienceBookings.length === 0;
 
   return (
-    <>
+    <div className="min-h-screen bg-sand">
       <Helmet>
         <title>My Orders | Basho by Shivangi</title>
         <meta name="description" content="View your order history" />
@@ -547,6 +547,6 @@ export default function Orders() {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 }
