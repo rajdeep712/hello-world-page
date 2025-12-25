@@ -175,37 +175,37 @@ const Navigation = () => {
           boxShadow: scrolled ? '0 2px 12px rgba(0,0,0,0.03)' : 'none',
         }}
       >
-        {/* Enhanced grain texture overlay */}
+        {/* Enhanced grain texture overlay - visible noise effect */}
         <div 
           className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${
-            scrolled ? 'opacity-[0.08]' : 'opacity-[0.05]'
+            scrolled ? 'opacity-[0.25]' : 'opacity-[0.15]'
           }`}
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-            backgroundSize: '120px 120px',
-            mixBlendMode: 'overlay',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+            backgroundSize: '150px 150px',
+            mixBlendMode: 'soft-light',
           }}
         />
-        {/* Secondary fine grain layer for depth */}
+        {/* Secondary darker grain layer for depth */}
         <div 
           className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${
-            scrolled ? 'opacity-[0.04]' : 'opacity-[0.025]'
+            scrolled ? 'opacity-[0.12]' : 'opacity-[0.08]'
           }`}
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='fineGrain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23fineGrain)'/%3E%3C/svg%3E")`,
-            backgroundSize: '80px 80px',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='fineGrain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23fineGrain)'/%3E%3C/svg%3E")`,
+            backgroundSize: '100px 100px',
             mixBlendMode: 'multiply',
           }}
         />
         {/* Scattered particle dots */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute w-1 h-1 rounded-full bg-primary/10 top-[20%] left-[10%]" />
-          <div className="absolute w-0.5 h-0.5 rounded-full bg-primary/15 top-[60%] left-[25%]" />
-          <div className="absolute w-1 h-1 rounded-full bg-primary/8 top-[30%] left-[45%]" />
-          <div className="absolute w-0.5 h-0.5 rounded-full bg-primary/12 top-[70%] left-[60%]" />
-          <div className="absolute w-1 h-1 rounded-full bg-primary/10 top-[40%] left-[75%]" />
-          <div className="absolute w-0.5 h-0.5 rounded-full bg-primary/15 top-[25%] left-[88%]" />
-          <div className="absolute w-0.5 h-0.5 rounded-full bg-primary/10 top-[55%] left-[92%]" />
+          <div className="absolute w-1 h-1 rounded-full bg-primary/15 top-[20%] left-[10%]" />
+          <div className="absolute w-0.5 h-0.5 rounded-full bg-primary/20 top-[60%] left-[25%]" />
+          <div className="absolute w-1 h-1 rounded-full bg-primary/12 top-[30%] left-[45%]" />
+          <div className="absolute w-0.5 h-0.5 rounded-full bg-primary/18 top-[70%] left-[60%]" />
+          <div className="absolute w-1 h-1 rounded-full bg-primary/15 top-[40%] left-[75%]" />
+          <div className="absolute w-0.5 h-0.5 rounded-full bg-primary/20 top-[25%] left-[88%]" />
+          <div className="absolute w-0.5 h-0.5 rounded-full bg-primary/15 top-[55%] left-[92%]" />
         </div>
         <nav className={`px-4 md:px-6 flex items-center justify-between transition-all duration-300 ${
           isCompact ? 'py-1.5' : 'py-2'
