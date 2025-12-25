@@ -18,11 +18,11 @@ const About = () => {
         />
       </Helmet>
 
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-sand">
         <Navigation />
         {/* Hero with Background Image */}
         <section 
-          className="h-[70vh] bg-cover bg-center bg-no-repeat flex items-center justify-center"
+          className="h-[70vh] pt-20 bg-cover bg-center bg-no-repeat flex items-center justify-center"
           style={{
             backgroundImage: `url(${bgAboutImage})`,
             backgroundAttachment: 'fixed'

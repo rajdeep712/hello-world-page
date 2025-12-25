@@ -217,7 +217,7 @@ const CustomOrders = () => {
         />
       </Helmet>
 
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-sand">
         <Navigation />
         <main className="pt-24">
           {/* Hero Section */}

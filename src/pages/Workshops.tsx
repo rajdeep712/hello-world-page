@@ -136,10 +136,10 @@ const Workshops = () => {
         />
       </Helmet>
 
-      <div className="min-h-screen bg-background overflow-x-hidden">
+      <div className="min-h-screen bg-charcoal overflow-x-hidden">
         <Navigation />
         
-        <main className="pt-20">
+        <main>
           {/* Cinematic Hero Section */}
           <section 
             ref={heroRef}

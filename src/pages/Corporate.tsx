@@ -149,7 +149,7 @@ const Corporate = () => {
         />
       </Helmet>
 
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-sand">
         <Navigation />
         <main className="pt-24">
           {/* A. Hero / Introduction Section */}
