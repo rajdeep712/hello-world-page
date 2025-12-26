@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { motion, useInView, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, Users, Heart, Cake, TreePine, Palette, LogIn, Sparkles, Star, ArrowDown } from "lucide-react";
+import { motion, useInView, useScroll, useTransform, AnimatePresence, MotionValue } from "framer-motion";
+import { Calendar, Clock, Users, Heart, Cake, TreePine, Palette, LogIn, Sparkles, Star, ArrowRight, ArrowDown, Play, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,6 +24,7 @@ import coupleImage from "@/assets/workshops/couple-pottery-date.jpg";
 import kidsImage from "@/assets/workshops/kids-clay-play.jpg";
 import studioImage from "@/assets/studio/studio-interior.jpg";
 import handsImage from "@/assets/hero/pottery-hands-clay.jpg";
+import potteryCollection from "@/assets/hero/pottery-collection.jpg";
 
 declare global {
   interface Window {
@@ -42,6 +43,7 @@ interface Experience {
   priceValue: number;
   image: string;
   icon: React.ReactNode;
+  accentColor: string;
 }
 
 const experiences: Experience[] = [
@@ -55,7 +57,8 @@ const experiences: Experience[] = [
     price: "₹3,500 per couple",
     priceValue: 3500,
     image: coupleImage,
-    icon: <Heart className="w-5 h-5" />
+    icon: <Heart className="w-6 h-6" />,
+    accentColor: "from-rose-500/20 via-rose-400/10"
   },
   {
     id: "birthday",
@@ -67,7 +70,8 @@ const experiences: Experience[] = [
     price: "₹12,000 onwards",
     priceValue: 12000,
     image: kidsImage,
-    icon: <Cake className="w-5 h-5" />
+    icon: <Cake className="w-6 h-6" />,
+    accentColor: "from-amber-500/20 via-amber-400/10"
   },
   {
     id: "farm",
@@ -79,7 +83,8 @@ const experiences: Experience[] = [
     price: "₹15,000 onwards",
     priceValue: 15000,
     image: studioImage,
-    icon: <TreePine className="w-5 h-5" />
+    icon: <TreePine className="w-6 h-6" />,
+    accentColor: "from-emerald-500/20 via-emerald-400/10"
   },
   {
     id: "studio",
@@ -91,7 +96,8 @@ const experiences: Experience[] = [
     price: "₹2,500 per person",
     priceValue: 2500,
     image: handsImage,
-    icon: <Palette className="w-5 h-5" />
+    icon: <Palette className="w-6 h-6" />,
+    accentColor: "from-terracotta/20 via-terracotta/10"
   }
 ];
 
@@ -103,224 +109,278 @@ const timeSlots = [
   "6:00 PM"
 ];
 
-// Floating decorative element
-const FloatingElement = ({ className, delay = 0 }: { className?: string; delay?: number }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 1.2, delay, ease: [0.25, 0.1, 0.25, 1] }}
-    className={cn("absolute pointer-events-none", className)}
-  >
-    <motion.div
-      animate={{ 
-        y: [0, -15, 0],
-        rotate: [0, 5, 0]
-      }}
-      transition={{ 
-        duration: 6 + Math.random() * 2,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }}
-    >
-      <div className="w-2 h-2 rounded-full bg-terracotta/30" />
-    </motion.div>
-  </motion.div>
+// Animated grain overlay
+const GrainOverlay = () => (
+  <div 
+    className="pointer-events-none fixed inset-0 z-50 opacity-[0.015]"
+    style={{
+      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+    }}
+  />
 );
 
-const ExperienceCard = ({ experience, index }: { experience: Experience; index: number }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"]
-  });
-  
-  const imageY = useTransform(scrollYProgress, [0, 1], [30, -30]);
-  const isEven = index % 2 === 0;
+// Floating orb component
+const FloatingOrb = ({ 
+  className, 
+  size = "lg",
+  delay = 0 
+}: { 
+  className?: string; 
+  size?: "sm" | "md" | "lg";
+  delay?: number;
+}) => {
+  const sizeClasses = {
+    sm: "w-32 h-32",
+    md: "w-64 h-64",
+    lg: "w-96 h-96"
+  };
 
   return (
     <motion.div
-      id={experience.id}
-      ref={ref}
-      initial={{ opacity: 0, y: 60 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 1, delay: index * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-      className="relative"
+      initial={{ opacity: 0, scale: 0.5 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 2, delay, ease: "easeOut" }}
+      className={cn("absolute rounded-full blur-3xl pointer-events-none", sizeClasses[size], className)}
     >
-      {/* Background accent */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={isInView ? { opacity: 1, scale: 1 } : {}}
-        transition={{ duration: 1.2, delay: 0.3 }}
-        className={cn(
-          "absolute -z-10 w-[600px] h-[600px] rounded-full blur-[120px]",
-          isEven ? "-left-40 -top-20" : "-right-40 -top-20",
-          index === 0 && "bg-terracotta/5",
-          index === 1 && "bg-primary/5",
-          index === 2 && "bg-moss/10",
-          index === 3 && "bg-amber/5"
-        )}
+        animate={{ 
+          scale: [1, 1.2, 1],
+          rotate: [0, 180, 360]
+        }}
+        transition={{ 
+          duration: 20 + Math.random() * 10,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+        className="w-full h-full rounded-full bg-gradient-radial from-current to-transparent opacity-40"
       />
-
-      <div className={cn(
-        "grid lg:grid-cols-2 gap-12 lg:gap-20 items-center",
-        !isEven && "lg:grid-flow-dense"
-      )}>
-        {/* Image */}
-        <div className={cn(
-          "relative group",
-          !isEven && "lg:col-start-2"
-        )}>
-          <motion.div
-            style={{ y: imageY }}
-            className="relative overflow-hidden rounded-sm"
-          >
-            {/* Image frame decoration */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={isInView ? { opacity: 1 } : {}}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              className={cn(
-                "absolute -z-10 w-full h-full border border-terracotta/20 rounded-sm",
-                isEven ? "-right-4 -bottom-4" : "-left-4 -bottom-4"
-              )}
-            />
-            
-            <div className="aspect-[4/3] overflow-hidden bg-muted">
-              <motion.img
-                initial={{ scale: 1.15 }}
-                animate={isInView ? { scale: 1 } : {}}
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
-                src={experience.image}
-                alt={experience.title}
-                className="w-full h-full object-cover"
-              />
-              {/* Elegant overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-deep-clay/40 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-700" />
-            </div>
-
-            {/* Floating icon badge */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.6, delay: 0.7, type: "spring" }}
-              className={cn(
-                "absolute bottom-6 bg-parchment/95 backdrop-blur-sm p-4 rounded-full shadow-lg",
-                isEven ? "right-6" : "left-6"
-              )}
-            >
-              <span className="text-terracotta">{experience.icon}</span>
-            </motion.div>
-          </motion.div>
-        </div>
-
-        {/* Content */}
-        <div className={cn(
-          "space-y-8",
-          !isEven && "lg:col-start-1"
-        )}>
-          {/* Tagline */}
-          <motion.div
-            initial={{ opacity: 0, x: isEven ? -20 : 20 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="flex items-center gap-3"
-          >
-            <span className="w-8 h-px bg-terracotta/60" />
-            <span className="text-sm font-sans tracking-[0.25em] uppercase text-terracotta">
-              {experience.tagline}
-            </span>
-          </motion.div>
-
-          {/* Title */}
-          <motion.h3
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="font-serif text-4xl md:text-5xl text-deep-clay leading-tight"
-          >
-            {experience.title}
-          </motion.h3>
-
-          {/* Description */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="text-muted-foreground leading-relaxed text-lg max-w-lg"
-          >
-            {experience.description}
-          </motion.p>
-
-          {/* Includes */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="space-y-4"
-          >
-            <p className="font-sans text-xs tracking-[0.2em] uppercase text-stone">What's included</p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {experience.includes.map((item, i) => (
-                <motion.li
-                  key={i}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={isInView ? { opacity: 1, x: 0 } : {}}
-                  transition={{ duration: 0.5, delay: 0.7 + i * 0.1 }}
-                  className="flex items-start gap-3 text-foreground/80"
-                >
-                  <Star className="w-3 h-3 text-terracotta/70 mt-1.5 flex-shrink-0" />
-                  <span className="text-sm">{item}</span>
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Price & Duration */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="flex flex-wrap items-center gap-8 pt-4"
-          >
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Clock className="w-4 h-4" />
-              <span className="text-sm">{experience.duration}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-serif text-2xl text-deep-clay">{experience.price}</span>
-            </div>
-          </motion.div>
-
-          {/* CTA Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.9 }}
-          >
-            <a href="#book" className="inline-block">
-              <Button
-                variant="outline"
-                className="group px-8 py-6 text-xs tracking-[0.2em] uppercase font-sans border-foreground/20 hover:bg-foreground hover:text-background transition-all duration-500"
-              >
-                Book This Experience
-                <motion.span
-                  className="ml-2 inline-block"
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  →
-                </motion.span>
-              </Button>
-            </a>
-          </motion.div>
-        </div>
-      </div>
     </motion.div>
   );
 };
 
+// Magnetic button component
+const MagneticButton = ({ children, className, ...props }: React.ComponentProps<typeof Button>) => {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const button = buttonRef.current;
+    if (!button) return;
+    
+    const rect = button.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    
+    button.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
+  };
+
+  const handleMouseLeave = () => {
+    const button = buttonRef.current;
+    if (!button) return;
+    button.style.transform = 'translate(0, 0)';
+  };
+
+  return (
+    <Button
+      ref={buttonRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className={cn("transition-transform duration-300 ease-out", className)}
+      {...props}
+    >
+      {children}
+    </Button>
+  );
+};
+
+// Full-screen experience card
+const FullScreenExperienceCard = ({ 
+  experience, 
+  index,
+  isActive 
+}: { 
+  experience: Experience; 
+  index: number;
+  isActive: boolean;
+}) => {
+  const cardRef = useRef(null);
+  const isInView = useInView(cardRef, { once: true, amount: 0.3 });
+
+  return (
+    <motion.div
+      ref={cardRef}
+      id={experience.id}
+      className="relative min-h-screen flex items-center overflow-hidden"
+    >
+      {/* Background image with parallax */}
+      <motion.div 
+        initial={{ scale: 1.2 }}
+        animate={{ scale: isInView ? 1 : 1.2 }}
+        transition={{ duration: 1.5, ease: [0.25, 0.1, 0.25, 1] }}
+        className="absolute inset-0"
+      >
+        <img
+          src={experience.image}
+          alt={experience.title}
+          className="w-full h-full object-cover"
+        />
+        {/* Dramatic overlays */}
+        <div className="absolute inset-0 bg-gradient-to-r from-charcoal via-charcoal/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-charcoal/30" />
+        <div className={cn(
+          "absolute inset-0 bg-gradient-to-br to-transparent opacity-60",
+          experience.accentColor
+        )} />
+      </motion.div>
+
+      {/* Experience number */}
+      <motion.div
+        initial={{ opacity: 0, x: -100 }}
+        animate={isInView ? { opacity: 0.1, x: 0 } : {}}
+        transition={{ duration: 1, delay: 0.3 }}
+        className="absolute left-8 md:left-16 top-1/2 -translate-y-1/2"
+      >
+        <span className="font-serif text-[20vw] md:text-[15vw] text-parchment/5 leading-none select-none">
+          0{index + 1}
+        </span>
+      </motion.div>
+
+      {/* Content */}
+      <div className="container relative z-10 px-6 md:px-16 py-32">
+        <div className="max-w-3xl">
+          {/* Icon badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5, rotate: -45 }}
+            animate={isInView ? { opacity: 1, scale: 1, rotate: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.2, type: "spring" }}
+            className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-parchment/10 backdrop-blur-sm border border-parchment/20 mb-10"
+          >
+            <span className="text-parchment">{experience.icon}</span>
+          </motion.div>
+
+          {/* Tagline */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="flex items-center gap-4 mb-6"
+          >
+            <motion.span 
+              initial={{ scaleX: 0 }}
+              animate={isInView ? { scaleX: 1 } : {}}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="w-12 h-px bg-gradient-to-r from-terracotta to-transparent origin-left" 
+            />
+            <span className="text-sm font-sans tracking-[0.3em] uppercase text-terracotta">
+              {experience.tagline}
+            </span>
+          </motion.div>
+
+          {/* Title with staggered letters */}
+          <motion.h2
+            initial={{ opacity: 0, y: 50 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 1, delay: 0.4 }}
+            className="font-serif text-5xl md:text-7xl lg:text-8xl text-parchment leading-[0.95] mb-8"
+          >
+            {experience.title}
+          </motion.h2>
+
+          {/* Description */}
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="text-parchment/70 text-lg md:text-xl leading-relaxed max-w-xl mb-12"
+          >
+            {experience.description}
+          </motion.p>
+
+          {/* Includes grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="grid grid-cols-2 gap-4 mb-12"
+          >
+            {experience.includes.map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={isInView ? { opacity: 1, x: 0 } : {}}
+                transition={{ duration: 0.5, delay: 0.7 + i * 0.1 }}
+                className="flex items-start gap-3 text-parchment/60"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-terracotta/60 mt-2 flex-shrink-0" />
+                <span className="text-sm">{item}</span>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Price & Duration row */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="flex flex-wrap items-center gap-8 mb-12"
+          >
+            <div className="flex items-center gap-3 text-parchment/50">
+              <Clock className="w-5 h-5" />
+              <span className="text-sm tracking-wide">{experience.duration}</span>
+            </div>
+            <div className="h-4 w-px bg-parchment/20" />
+            <span className="font-serif text-3xl md:text-4xl text-parchment">
+              {experience.price}
+            </span>
+          </motion.div>
+
+          {/* CTA Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.9 }}
+          >
+            <a href="#book">
+              <MagneticButton
+                variant="outline"
+                className="group relative px-10 py-7 text-xs tracking-[0.2em] uppercase font-sans border-parchment/30 text-parchment bg-transparent hover:bg-parchment hover:text-charcoal transition-all duration-500 overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center gap-3">
+                  Book This Experience
+                  <motion.span
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </motion.span>
+                </span>
+              </MagneticButton>
+            </a>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Decorative corner elements */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={isInView ? { opacity: 1 } : {}}
+        transition={{ duration: 1, delay: 1 }}
+        className="absolute top-16 right-16 hidden lg:block"
+      >
+        <div className="w-24 h-24 border-t border-r border-parchment/10" />
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={isInView ? { opacity: 1 } : {}}
+        transition={{ duration: 1, delay: 1 }}
+        className="absolute bottom-16 left-16 hidden lg:block"
+      >
+        <div className="w-24 h-24 border-b border-l border-parchment/10" />
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// Booking Section
 const BookingSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
@@ -487,20 +547,30 @@ const BookingSection = () => {
       <section
         id="book"
         ref={ref}
-        className="relative py-32 md:py-40 overflow-hidden"
+        className="relative py-32 md:py-40 overflow-hidden bg-charcoal"
       >
-        {/* Background decorations */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-card/50 to-background" />
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 0.5 } : {}}
-          transition={{ duration: 1.5 }}
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, hsl(var(--terracotta) / 0.05) 0%, transparent 50%),
-                              radial-gradient(circle at 80% 50%, hsl(var(--primary) / 0.05) 0%, transparent 50%)`
-          }}
-        />
+        {/* Atmospheric background */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-charcoal via-charcoal to-charcoal" />
+          <FloatingOrb className="text-terracotta -left-48 top-1/4" size="lg" delay={0.5} />
+          <FloatingOrb className="text-primary -right-48 bottom-1/4" size="md" delay={0.8} />
+        </div>
+
+        {/* Decorative lines */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <motion.div
+            initial={{ scaleY: 0 }}
+            animate={isInView ? { scaleY: 1 } : {}}
+            transition={{ duration: 1.5, delay: 0.2 }}
+            className="absolute left-1/4 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-parchment/5 to-transparent origin-top"
+          />
+          <motion.div
+            initial={{ scaleY: 0 }}
+            animate={isInView ? { scaleY: 1 } : {}}
+            transition={{ duration: 1.5, delay: 0.4 }}
+            className="absolute right-1/4 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-parchment/5 to-transparent origin-top"
+          />
+        </div>
 
         <div className="container relative max-w-2xl mx-auto px-6">
           {/* Section header */}
@@ -511,25 +581,27 @@ const BookingSection = () => {
             className="text-center mb-16"
           >
             <motion.div
-              initial={{ scale: 0 }}
-              animate={isInView ? { scale: 1 } : {}}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-terracotta/10 mb-6"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={isInView ? { scale: 1, rotate: 0 } : {}}
+              transition={{ duration: 0.8, delay: 0.2, type: "spring" }}
+              className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-terracotta/20 to-transparent border border-terracotta/20 mb-8"
             >
-              <Sparkles className="w-6 h-6 text-terracotta" />
+              <Sparkles className="w-7 h-7 text-terracotta" />
             </motion.div>
             
-            <span className="block font-sans text-xs tracking-[0.3em] uppercase text-terracotta mb-4">
-              Begin your experience
+            <span className="block font-sans text-xs tracking-[0.4em] uppercase text-terracotta mb-6">
+              Begin your journey
             </span>
-            <h2 className="font-serif text-4xl md:text-5xl text-deep-clay">
-              Book a Session
+            <h2 className="font-serif text-5xl md:text-6xl text-parchment mb-6">
+              Reserve Your
+              <br />
+              <span className="italic font-light">Experience</span>
             </h2>
             <motion.div
               initial={{ scaleX: 0 }}
               animate={isInView ? { scaleX: 1 } : {}}
               transition={{ duration: 0.8, delay: 0.5 }}
-              className="w-16 h-px bg-terracotta/40 mx-auto mt-6"
+              className="w-24 h-px bg-gradient-to-r from-transparent via-terracotta/40 to-transparent mx-auto"
             />
           </motion.div>
 
@@ -539,16 +611,19 @@ const BookingSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.4 }}
-              className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-lg p-8 mb-10 text-center"
+              className="bg-parchment/5 backdrop-blur-sm border border-parchment/10 rounded-2xl p-10 mb-10 text-center"
             >
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-4">
-                <LogIn className="w-5 h-5 text-muted-foreground" />
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-parchment/5 border border-parchment/10 mb-6">
+                <LogIn className="w-6 h-6 text-parchment/60" />
               </div>
-              <p className="text-muted-foreground mb-6">Please sign in to book an experience</p>
+              <p className="text-parchment/60 mb-8 text-lg">Please sign in to book an experience</p>
               <Link to="/auth">
-                <Button variant="outline" className="px-8 py-5 text-xs tracking-[0.15em] uppercase">
+                <MagneticButton 
+                  variant="outline" 
+                  className="px-10 py-6 text-xs tracking-[0.2em] uppercase border-parchment/30 text-parchment hover:bg-parchment hover:text-charcoal"
+                >
                   Sign In
-                </Button>
+                </MagneticButton>
               </Link>
             </motion.div>
           )}
@@ -559,20 +634,24 @@ const BookingSection = () => {
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 1, delay: 0.5 }}
             onSubmit={handleSubmit}
-            className="space-y-8 bg-card/60 backdrop-blur-sm border border-border/40 rounded-xl p-8 md:p-10 shadow-lg"
+            className="space-y-8 bg-parchment/5 backdrop-blur-xl border border-parchment/10 rounded-3xl p-8 md:p-12"
           >
             {/* Experience Type */}
-            <div className="space-y-3">
-              <label className="font-sans text-xs tracking-[0.15em] uppercase text-muted-foreground">
+            <div className="space-y-4">
+              <label className="font-sans text-xs tracking-[0.2em] uppercase text-parchment/50">
                 Experience Type
               </label>
               <Select value={selectedExperience} onValueChange={setSelectedExperience}>
-                <SelectTrigger className="bg-background/80 border-border/60 h-12">
+                <SelectTrigger className="bg-parchment/5 border-parchment/20 h-14 text-parchment focus:ring-terracotta/30">
                   <SelectValue placeholder="Choose an experience" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-charcoal border-parchment/20">
                   {experiences.map((exp) => (
-                    <SelectItem key={exp.id} value={exp.id}>
+                    <SelectItem 
+                      key={exp.id} 
+                      value={exp.id}
+                      className="text-parchment focus:bg-parchment/10 focus:text-parchment"
+                    >
                       {exp.title} - {exp.price}
                     </SelectItem>
                   ))}
@@ -581,8 +660,8 @@ const BookingSection = () => {
             </div>
 
             {/* Date Picker */}
-            <div className="space-y-3">
-              <label className="font-sans text-xs tracking-[0.15em] uppercase text-muted-foreground">
+            <div className="space-y-4">
+              <label className="font-sans text-xs tracking-[0.2em] uppercase text-parchment/50">
                 Preferred Date
               </label>
               <Popover>
@@ -590,15 +669,15 @@ const BookingSection = () => {
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal bg-background/80 border-border/60 h-12",
-                      !date && "text-muted-foreground"
+                      "w-full justify-start text-left font-normal bg-parchment/5 border-parchment/20 h-14 text-parchment hover:bg-parchment/10",
+                      !date && "text-parchment/50"
                     )}
                   >
-                    <Calendar className="mr-3 h-4 w-4" />
+                    <Calendar className="mr-3 h-5 w-5" />
                     {date ? format(date, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 bg-charcoal border-parchment/20" align="start">
                   <CalendarComponent
                     mode="single"
                     selected={date}
@@ -612,17 +691,21 @@ const BookingSection = () => {
             </div>
 
             {/* Time Slot */}
-            <div className="space-y-3">
-              <label className="font-sans text-xs tracking-[0.15em] uppercase text-muted-foreground">
+            <div className="space-y-4">
+              <label className="font-sans text-xs tracking-[0.2em] uppercase text-parchment/50">
                 Time Slot
               </label>
               <Select value={timeSlot} onValueChange={setTimeSlot}>
-                <SelectTrigger className="bg-background/80 border-border/60 h-12">
+                <SelectTrigger className="bg-parchment/5 border-parchment/20 h-14 text-parchment focus:ring-terracotta/30">
                   <SelectValue placeholder="Select a time" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-charcoal border-parchment/20">
                   {timeSlots.map((slot) => (
-                    <SelectItem key={slot} value={slot}>
+                    <SelectItem 
+                      key={slot} 
+                      value={slot}
+                      className="text-parchment focus:bg-parchment/10 focus:text-parchment"
+                    >
                       {slot}
                     </SelectItem>
                   ))}
@@ -631,12 +714,12 @@ const BookingSection = () => {
             </div>
 
             {/* Number of Guests */}
-            <div className="space-y-3">
-              <label className="font-sans text-xs tracking-[0.15em] uppercase text-muted-foreground">
+            <div className="space-y-4">
+              <label className="font-sans text-xs tracking-[0.2em] uppercase text-parchment/50">
                 Number of People
               </label>
               <div className="relative">
-                <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-parchment/40" />
                 <Input
                   type="number"
                   min="1"
@@ -644,22 +727,22 @@ const BookingSection = () => {
                   value={guests}
                   onChange={(e) => setGuests(e.target.value)}
                   placeholder="How many guests?"
-                  className="pl-12 bg-background/80 border-border/60 h-12"
+                  className="pl-12 bg-parchment/5 border-parchment/20 h-14 text-parchment placeholder:text-parchment/40 focus:ring-terracotta/30"
                 />
               </div>
             </div>
 
             {/* Notes */}
-            <div className="space-y-3">
-              <label className="font-sans text-xs tracking-[0.15em] uppercase text-muted-foreground">
-                Notes <span className="text-muted-foreground/60 normal-case">(occasion, preferences)</span>
+            <div className="space-y-4">
+              <label className="font-sans text-xs tracking-[0.2em] uppercase text-parchment/50">
+                Notes <span className="text-parchment/30 normal-case">(occasion, preferences)</span>
               </label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Tell us about your occasion..."
                 rows={4}
-                className="bg-background/80 border-border/60 resize-none"
+                className="bg-parchment/5 border-parchment/20 text-parchment placeholder:text-parchment/40 resize-none focus:ring-terracotta/30"
               />
             </div>
 
@@ -670,11 +753,11 @@ const BookingSection = () => {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="bg-terracotta/5 rounded-lg p-6 border border-terracotta/20"
+                  className="bg-gradient-to-r from-terracotta/10 to-transparent rounded-2xl p-8 border border-terracotta/20"
                 >
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground font-sans text-sm">Total Amount</span>
-                    <span className="font-serif text-3xl text-deep-clay">
+                    <span className="text-parchment/60 font-sans text-sm tracking-wide">Total Amount</span>
+                    <span className="font-serif text-4xl text-parchment">
                       ₹{totalAmount.toLocaleString()}
                     </span>
                   </div>
@@ -683,13 +766,13 @@ const BookingSection = () => {
             </AnimatePresence>
 
             {/* Submit button */}
-            <Button
+            <MagneticButton
               type="submit"
               disabled={isSubmitting || !user}
-              className="w-full py-7 text-xs tracking-[0.2em] uppercase font-sans bg-primary hover:bg-primary/90 transition-all duration-500"
+              className="w-full py-8 text-xs tracking-[0.25em] uppercase font-sans bg-terracotta hover:bg-terracotta/90 text-parchment transition-all duration-500 rounded-xl"
             >
               {isSubmitting ? (
-                <span className="flex items-center gap-3">
+                <span className="flex items-center justify-center gap-3">
                   <motion.span
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -699,15 +782,121 @@ const BookingSection = () => {
                   Processing...
                 </span>
               ) : user ? (
-                "Book & Pay"
+                <span className="flex items-center justify-center gap-3">
+                  Book & Pay
+                  <ArrowRight className="w-4 h-4" />
+                </span>
               ) : (
                 "Sign In to Book"
               )}
-            </Button>
+            </MagneticButton>
           </motion.form>
         </div>
       </section>
     </>
+  );
+};
+
+// Philosophy Section
+const PhilosophySection = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.3 });
+
+  return (
+    <section ref={ref} className="relative py-40 overflow-hidden bg-sand">
+      {/* Background */}
+      <div className="absolute inset-0">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ duration: 2 }}
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `radial-gradient(circle at 30% 50%, hsl(var(--terracotta) / 0.05) 0%, transparent 50%),
+                              radial-gradient(circle at 70% 50%, hsl(var(--moss) / 0.05) 0%, transparent 50%)`
+          }}
+        />
+      </div>
+
+      <div className="container relative max-w-5xl mx-auto px-6">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Image */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 1 }}
+            className="relative"
+          >
+            <div className="aspect-[4/5] rounded-3xl overflow-hidden">
+              <img
+                src={potteryCollection}
+                alt="Pottery collection"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-charcoal/50 via-transparent to-transparent" />
+            </div>
+            {/* Floating quote */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="absolute -bottom-8 -right-8 bg-parchment p-8 rounded-2xl shadow-xl max-w-xs"
+            >
+              <p className="font-serif text-lg text-deep-clay italic leading-relaxed">
+                "Every imperfection tells a story of human touch."
+              </p>
+            </motion.div>
+          </motion.div>
+
+          {/* Content */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 1, delay: 0.2 }}
+            className="space-y-8"
+          >
+            <div className="flex items-center gap-4">
+              <span className="w-12 h-px bg-terracotta" />
+              <span className="text-xs font-sans tracking-[0.3em] uppercase text-terracotta">
+                Our Philosophy
+              </span>
+            </div>
+
+            <h2 className="font-serif text-4xl md:text-5xl text-deep-clay leading-tight">
+              Experiences that
+              <br />
+              <span className="italic font-light">shape memories</span>
+            </h2>
+
+            <p className="text-muted-foreground text-lg leading-relaxed">
+              We believe in the transformative power of creating with your hands. 
+              Each experience is designed not just to teach, but to reconnect—with 
+              loved ones, with nature, and with the meditative rhythm of clay.
+            </p>
+
+            <p className="text-muted-foreground leading-relaxed">
+              Whether it's a quiet couple's evening at the wheel or a joyful 
+              celebration under open skies, every session becomes a story worth 
+              remembering.
+            </p>
+
+            <div className="flex flex-wrap gap-4 pt-4">
+              {["Intimate Settings", "Expert Guidance", "Lasting Keepsakes"].map((item, i) => (
+                <motion.span
+                  key={item}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                  transition={{ duration: 0.5, delay: 0.8 + i * 0.1 }}
+                  className="px-5 py-2.5 rounded-full border border-deep-clay/20 text-sm text-deep-clay/80"
+                >
+                  {item}
+                </motion.span>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
   );
 };
 
@@ -717,8 +906,9 @@ const Experiences = () => {
   const isHeroInView = useInView(heroRef, { once: true });
   const location = useLocation();
   const { scrollYProgress } = useScroll();
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-  const heroScale = useTransform(scrollYProgress, [0, 0.3], [1, 1.1]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 1.15]);
+  const heroY = useTransform(scrollYProgress, [0, 0.3], [0, 100]);
 
   useEffect(() => {
     if (location.hash) {
@@ -733,7 +923,7 @@ const Experiences = () => {
   }, [location.hash]);
 
   return (
-    <div className="min-h-screen bg-deep-clay">
+    <div className="min-h-screen bg-charcoal">
       <Helmet>
         <title>Experiences | Basho by Shivangi - Create Moments with Clay</title>
         <meta
@@ -742,16 +932,17 @@ const Experiences = () => {
         />
       </Helmet>
 
+      <GrainOverlay />
       <Navigation />
 
-      {/* Cinematic Hero Section */}
+      {/* Immersive Hero Section */}
       <section 
         ref={heroRef} 
-        className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden"
+        className="relative h-[100vh] min-h-[800px] flex items-center justify-center overflow-hidden"
       >
-        {/* Parallax Background */}
+        {/* Parallax Background with video-like effect */}
         <motion.div 
-          style={{ scale: heroScale }}
+          style={{ scale: heroScale, y: heroY }}
           className="absolute inset-0"
         >
           <img
@@ -759,147 +950,161 @@ const Experiences = () => {
             alt="Hands shaping clay together"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-deep-clay/70 via-deep-clay/50 to-background" />
+          {/* Multi-layer gradient overlay for depth */}
+          <div className="absolute inset-0 bg-gradient-to-b from-charcoal/80 via-charcoal/40 to-charcoal" />
+          <div className="absolute inset-0 bg-gradient-to-r from-charcoal/60 via-transparent to-charcoal/60" />
         </motion.div>
 
-        {/* Floating decorative elements */}
-        <FloatingElement className="top-1/4 left-[15%]" delay={0.8} />
-        <FloatingElement className="top-1/3 right-[20%]" delay={1.0} />
-        <FloatingElement className="bottom-1/3 left-[25%]" delay={1.2} />
-        <FloatingElement className="bottom-1/4 right-[15%]" delay={1.4} />
+        {/* Floating orbs */}
+        <FloatingOrb className="text-terracotta top-1/4 -left-32" size="lg" delay={0.5} />
+        <FloatingOrb className="text-moss top-1/3 -right-24" size="md" delay={0.8} />
+        <FloatingOrb className="text-amber bottom-1/4 left-1/4" size="sm" delay={1.1} />
 
         {/* Hero Content */}
         <motion.div 
           style={{ opacity: heroOpacity }}
-          className="relative z-10 text-center px-6 max-w-4xl mx-auto"
+          className="relative z-10 text-center px-6 max-w-5xl mx-auto"
         >
-          {/* Decorative top element */}
+          {/* Decorative circular element */}
           <motion.div
-            initial={{ opacity: 0, scale: 0 }}
-            animate={isHeroInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="inline-flex items-center justify-center w-20 h-20 rounded-full border border-parchment/20 mb-8"
+            initial={{ opacity: 0, scale: 0, rotate: -180 }}
+            animate={isHeroInView ? { opacity: 1, scale: 1, rotate: 0 } : {}}
+            transition={{ duration: 1.2, delay: 0.3, type: "spring" }}
+            className="inline-flex items-center justify-center w-28 h-28 rounded-full border border-parchment/10 mb-12 relative"
           >
             <motion.div
               animate={{ rotate: 360 }}
+              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-2 rounded-full border border-parchment/5"
+            />
+            <motion.div
+              animate={{ rotate: -360 }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="w-10 h-10 border border-parchment/30 rounded-full flex items-center justify-center"
-            >
-              <Sparkles className="w-4 h-4 text-parchment/60" />
-            </motion.div>
+              className="absolute inset-4 rounded-full border border-dashed border-parchment/10"
+            />
+            <Sparkles className="w-6 h-6 text-terracotta" />
           </motion.div>
 
           {/* Tagline */}
           <motion.span
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 1, delay: 0.5 }}
-            className="block font-sans text-xs tracking-[0.4em] uppercase text-parchment/70 mb-6"
+            className="block font-sans text-xs tracking-[0.5em] uppercase text-terracotta mb-8"
           >
             Curated Pottery Experiences
           </motion.span>
 
-          {/* Main heading */}
-          <motion.h1
-            initial={{ opacity: 0, y: 40 }}
-            animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 1.2, delay: 0.7 }}
-            className="font-serif text-5xl md:text-7xl lg:text-8xl text-parchment leading-[0.95] mb-8"
-          >
-            Create moments
-            <br />
-            <span className="italic font-light">with clay</span>
-          </motion.h1>
+          {/* Main heading - dramatic split */}
+          <div className="overflow-hidden mb-8">
+            <motion.h1
+              initial={{ y: 120 }}
+              animate={isHeroInView ? { y: 0 } : {}}
+              transition={{ duration: 1.2, delay: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+              className="font-serif text-6xl md:text-8xl lg:text-[10rem] text-parchment leading-[0.85] tracking-tight"
+            >
+              Create
+            </motion.h1>
+          </div>
+          <div className="overflow-hidden mb-12">
+            <motion.h1
+              initial={{ y: 120 }}
+              animate={isHeroInView ? { y: 0 } : {}}
+              transition={{ duration: 1.2, delay: 0.75, ease: [0.25, 0.1, 0.25, 1] }}
+              className="font-serif text-6xl md:text-8xl lg:text-[10rem] text-parchment leading-[0.85] italic font-light"
+            >
+              Moments
+            </motion.h1>
+          </div>
 
           {/* Subtitle */}
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 1, delay: 0.9 }}
-            className="font-sans text-parchment/60 text-lg md:text-xl max-w-xl mx-auto leading-relaxed"
+            transition={{ duration: 1, delay: 1 }}
+            className="font-sans text-parchment/50 text-lg md:text-xl max-w-xl mx-auto leading-relaxed"
           >
             Intimate gatherings where hands meet clay, 
             creating memories that endure beyond the moment.
           </motion.p>
 
-          {/* Divider */}
+          {/* Scroll CTA */}
           <motion.div
-            initial={{ scaleX: 0 }}
-            animate={isHeroInView ? { scaleX: 1 } : {}}
-            transition={{ duration: 1, delay: 1.1 }}
-            className="w-24 h-px bg-gradient-to-r from-transparent via-parchment/40 to-transparent mx-auto mt-10"
-          />
-        </motion.div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isHeroInView ? { opacity: 1 } : {}}
-          transition={{ delay: 1.5 }}
-          className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
-        >
-          <span className="text-xs tracking-[0.2em] uppercase text-parchment/50">Discover</span>
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            initial={{ opacity: 0 }}
+            animate={isHeroInView ? { opacity: 1 } : {}}
+            transition={{ delay: 1.5 }}
+            className="mt-16"
           >
-            <ArrowDown className="w-4 h-4 text-parchment/40" />
+            <a href="#couple" className="inline-block group">
+              <motion.div
+                animate={{ y: [0, 10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="flex flex-col items-center gap-4"
+              >
+                <span className="text-xs tracking-[0.2em] uppercase text-parchment/40 group-hover:text-parchment/60 transition-colors">
+                  Explore Experiences
+                </span>
+                <div className="w-px h-16 bg-gradient-to-b from-parchment/40 to-transparent" />
+              </motion.div>
+            </a>
           </motion.div>
         </motion.div>
 
-        {/* Bottom gradient fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
+        {/* Decorative corner frames */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isHeroInView ? { opacity: 1 } : {}}
+          transition={{ duration: 1, delay: 1.2 }}
+          className="absolute top-24 left-8 md:left-16"
+        >
+          <div className="w-16 md:w-24 h-16 md:h-24 border-t border-l border-parchment/10" />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isHeroInView ? { opacity: 1 } : {}}
+          transition={{ duration: 1, delay: 1.2 }}
+          className="absolute top-24 right-8 md:right-16"
+        >
+          <div className="w-16 md:w-24 h-16 md:h-24 border-t border-r border-parchment/10" />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isHeroInView ? { opacity: 1 } : {}}
+          transition={{ duration: 1, delay: 1.2 }}
+          className="absolute bottom-32 left-8 md:left-16"
+        >
+          <div className="w-16 md:w-24 h-16 md:h-24 border-b border-l border-parchment/10" />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isHeroInView ? { opacity: 1 } : {}}
+          transition={{ duration: 1, delay: 1.2 }}
+          className="absolute bottom-32 right-8 md:right-16"
+        >
+          <div className="w-16 md:w-24 h-16 md:h-24 border-b border-r border-parchment/10" />
+        </motion.div>
       </section>
 
-      {/* Experience Types Section */}
-      <section className="relative py-32 md:py-40 lg:py-48">
-        {/* Section intro */}
-        <div className="container max-w-4xl mx-auto px-6 text-center mb-24">
-          <motion.span
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="block font-sans text-xs tracking-[0.3em] uppercase text-terracotta mb-4"
-          >
-            Our Offerings
-          </motion.span>
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            className="font-serif text-4xl md:text-5xl lg:text-6xl text-deep-clay mb-6"
-          >
-            Experiences Crafted for You
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-muted-foreground text-lg max-w-2xl mx-auto"
-          >
-            From intimate couple sessions to joyful celebrations, 
-            each experience is designed to create lasting connections through the art of pottery.
-          </motion.p>
-        </div>
+      {/* Full-screen Experience Sections */}
+      {experiences.map((experience, index) => (
+        <FullScreenExperienceCard
+          key={experience.id}
+          experience={experience}
+          index={index}
+          isActive={true}
+        />
+      ))}
 
-        {/* Experience cards */}
-        <div className="container max-w-6xl mx-auto px-6">
-          <div className="space-y-32 md:space-y-40">
-            {experiences.map((experience, index) => (
-              <ExperienceCard key={experience.id} experience={experience} index={index} />
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Philosophy Section */}
+      <PhilosophySection />
 
       {/* Booking Section */}
       <BookingSection />
 
       {/* FAQ Section */}
-      <ExperiencesFAQ />
+      <div className="bg-sand">
+        <ExperiencesFAQ />
+      </div>
 
       <Footer />
     </div>
