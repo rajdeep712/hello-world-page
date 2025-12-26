@@ -114,7 +114,7 @@ const experiences: Experience[] = [
 
 const timeSlots = ["10:00 AM", "11:30 AM", "2:00 PM", "4:00 PM", "6:00 PM"];
 
-// Elegant experience card with hover effects
+// Elegant experience card with premium hover effects
 const ExperienceCard = ({ experience, index }: { experience: Experience; index: number }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -129,146 +129,254 @@ const ExperienceCard = ({ experience, index }: { experience: Experience; index: 
       transition={{ duration: 0.8, delay: index * 0.15, ease: [0.25, 0.1, 0.25, 1] }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative"
+      className="group relative cursor-pointer"
     >
-      <div className="relative overflow-hidden rounded-3xl" style={{ backgroundColor: colors.darkBrown }}>
-        {/* Image container - Made taller */}
+      {/* Outer glow on hover */}
+      <motion.div
+        animate={{ 
+          opacity: isHovered ? 1 : 0,
+          scale: isHovered ? 1 : 0.95
+        }}
+        transition={{ duration: 0.5 }}
+        className="absolute -inset-1 rounded-[2rem] blur-xl"
+        style={{ background: `linear-gradient(135deg, ${colors.burntOrange}30, ${colors.mediumBrown}20)` }}
+      />
+      
+      <div 
+        className="relative overflow-hidden rounded-[2rem] shadow-2xl"
+        style={{ 
+          backgroundColor: colors.darkBrown,
+          boxShadow: isHovered 
+            ? `0 25px 60px -15px ${colors.darkBrown}80, 0 0 40px ${colors.burntOrange}15`
+            : `0 15px 40px -10px ${colors.darkBrown}60`
+        }}
+      >
+        {/* Image container */}
         <div className="relative aspect-[2/3] md:aspect-[3/5] overflow-hidden">
           <motion.img
             src={experience.image}
             alt={experience.title}
-            animate={{ scale: isHovered ? 1.08 : 1 }}
-            transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+            animate={{ 
+              scale: isHovered ? 1.12 : 1,
+              filter: isHovered ? "brightness(0.7)" : "brightness(0.85)"
+            }}
+            transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
             className="w-full h-full object-cover"
           />
           
-          {/* Gradient overlays */}
+          {/* Multi-layer gradient overlays */}
           <div className={cn(
-            "absolute inset-0 bg-gradient-to-t opacity-90 transition-opacity duration-500",
+            "absolute inset-0 bg-gradient-to-t transition-opacity duration-700",
             experience.gradient
-          )} />
-          <div 
-            className="absolute inset-0 bg-gradient-to-t from-[#442D1C] via-[#442D1C]/30 to-transparent opacity-90" 
+          )} 
+            style={{ opacity: isHovered ? 0.85 : 0.75 }}
+          />
+          <motion.div 
+            className="absolute inset-0"
+            animate={{ opacity: isHovered ? 0.95 : 0.85 }}
+            style={{ 
+              background: `linear-gradient(to top, ${colors.darkBrown} 0%, ${colors.darkBrown}90 25%, transparent 60%)` 
+            }}
           />
           
-          {/* Hover glow effect */}
+          {/* Shimmer effect on hover */}
           <motion.div
-            animate={{ opacity: isHovered ? 0.2 : 0 }}
-            transition={{ duration: 0.5 }}
-            className="absolute inset-0 bg-gradient-to-t from-[#C85428]/30 to-transparent"
+            initial={{ x: "-100%", opacity: 0 }}
+            animate={{ 
+              x: isHovered ? "100%" : "-100%",
+              opacity: isHovered ? 0.3 : 0
+            }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
+          />
+          
+          {/* Warm glow from bottom */}
+          <motion.div
+            animate={{ opacity: isHovered ? 0.4 : 0 }}
+            transition={{ duration: 0.6 }}
+            className="absolute inset-0"
+            style={{ 
+              background: `radial-gradient(ellipse at bottom center, ${colors.burntOrange}40 0%, transparent 60%)` 
+            }}
           />
         </div>
 
         {/* Content overlay */}
-        <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
-          {/* Top icon */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
-            className="absolute top-6 left-6 md:top-8 md:left-8"
-          >
-            <div 
-              className="w-12 h-12 rounded-2xl backdrop-blur-sm border flex items-center justify-center"
-              style={{ backgroundColor: `${colors.cream}15`, borderColor: `${colors.cream}20` }}
+        <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-between">
+          {/* Top section */}
+          <div className="flex justify-between items-start">
+            {/* Icon with floating animation */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ duration: 0.6, delay: 0.3 + index * 0.1, type: "spring" }}
             >
-              <span style={{ color: colors.cream }}>{experience.icon}</span>
-            </div>
-          </motion.div>
+              <motion.div 
+                animate={{ y: isHovered ? -3 : 0 }}
+                transition={{ duration: 0.4 }}
+                className="w-14 h-14 rounded-2xl backdrop-blur-md border flex items-center justify-center shadow-lg"
+                style={{ 
+                  backgroundColor: `${colors.cream}12`, 
+                  borderColor: `${colors.cream}25`,
+                  boxShadow: `0 8px 20px ${colors.darkBrown}40`
+                }}
+              >
+                <span style={{ color: colors.cream }}>{experience.icon}</span>
+              </motion.div>
+            </motion.div>
 
-          {/* Price tag */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
-            className="absolute top-6 right-6 md:top-8 md:right-8"
-          >
-            <div 
-              className="px-4 py-2 rounded-full backdrop-blur-sm border"
-              style={{ backgroundColor: `${colors.cream}15`, borderColor: `${colors.cream}20` }}
+            {/* Price badge with pulse on hover */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
             >
-              <span className="font-medium text-sm" style={{ color: colors.cream }}>{experience.price}</span>
-            </div>
-          </motion.div>
+              <motion.div 
+                animate={{ scale: isHovered ? 1.05 : 1 }}
+                transition={{ duration: 0.3 }}
+                className="px-5 py-2.5 rounded-full backdrop-blur-md border shadow-lg"
+                style={{ 
+                  backgroundColor: isHovered ? `${colors.burntOrange}25` : `${colors.cream}12`, 
+                  borderColor: isHovered ? `${colors.burntOrange}40` : `${colors.cream}20`,
+                  boxShadow: isHovered 
+                    ? `0 8px 25px ${colors.burntOrange}25`
+                    : `0 4px 15px ${colors.darkBrown}30`
+                }}
+              >
+                <span className="font-semibold text-sm" style={{ color: colors.cream }}>
+                  {experience.price}
+                </span>
+              </motion.div>
+            </motion.div>
+          </div>
 
-          {/* Main content */}
-          <div className="space-y-4">
+          {/* Bottom content */}
+          <div className="space-y-3">
+            {/* Decorative line */}
+            <motion.div
+              animate={{ width: isHovered ? 60 : 40 }}
+              transition={{ duration: 0.4 }}
+              className="h-0.5 rounded-full"
+              style={{ background: `linear-gradient(to right, ${colors.burntOrange}, transparent)` }}
+            />
+            
             {/* Tagline */}
             <motion.span
-              animate={{ y: isHovered ? -4 : 0 }}
+              animate={{ 
+                y: isHovered ? -6 : 0,
+                letterSpacing: isHovered ? "0.25em" : "0.2em"
+              }}
               transition={{ duration: 0.4 }}
-              className="inline-block text-xs tracking-[0.2em] uppercase"
-              style={{ color: `${colors.cream}70` }}
+              className="inline-block text-xs uppercase font-medium"
+              style={{ color: colors.burntOrange }}
             >
               {experience.tagline}
             </motion.span>
 
             {/* Title */}
             <motion.h3
-              animate={{ y: isHovered ? -4 : 0 }}
+              animate={{ y: isHovered ? -6 : 0 }}
               transition={{ duration: 0.4, delay: 0.05 }}
-              className="font-serif text-2xl md:text-3xl leading-tight"
+              className="font-serif text-2xl md:text-3xl lg:text-4xl leading-tight"
               style={{ color: colors.cream }}
             >
               {experience.title}
             </motion.h3>
 
-            {/* Description - shows on hover */}
+            {/* Description - reveals on hover */}
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ 
                 height: isHovered ? "auto" : 0,
                 opacity: isHovered ? 1 : 0
               }}
-              transition={{ duration: 0.4, delay: 0.1 }}
+              transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
               className="overflow-hidden"
             >
-              <p className="text-sm leading-relaxed mb-4" style={{ color: `${colors.cream}90` }}>
+              <p className="text-sm md:text-base leading-relaxed mb-5" style={{ color: `${colors.cream}85` }}>
                 {experience.description}
               </p>
               
-              {/* Duration */}
-              <div className="flex items-center gap-2 text-sm mb-4" style={{ color: `${colors.cream}60` }}>
-                <Clock className="w-4 h-4" />
-                <span>{experience.duration}</span>
+              {/* Details row */}
+              <div className="flex items-center gap-6 mb-5">
+                <div className="flex items-center gap-2" style={{ color: `${colors.cream}70` }}>
+                  <Clock className="w-4 h-4" style={{ color: colors.burntOrange }} />
+                  <span className="text-sm">{experience.duration}</span>
+                </div>
+                <div className="flex items-center gap-2" style={{ color: `${colors.cream}70` }}>
+                  <Users className="w-4 h-4" style={{ color: colors.burntOrange }} />
+                  <span className="text-sm">Private</span>
+                </div>
+              </div>
+              
+              {/* Includes list */}
+              <div className="space-y-2 mb-5">
+                {experience.includes.slice(0, 3).map((item, i) => (
+                  <motion.div 
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 + i * 0.1 }}
+                    className="flex items-center gap-2 text-sm"
+                    style={{ color: `${colors.cream}70` }}
+                  >
+                    <Star className="w-3 h-3" style={{ color: colors.burntOrange }} />
+                    <span>{item}</span>
+                  </motion.div>
+                ))}
               </div>
             </motion.div>
 
             {/* CTA Button */}
             <motion.div
               animate={{ 
-                y: isHovered ? 0 : 10,
+                y: isHovered ? 0 : 15,
                 opacity: isHovered ? 1 : 0
               }}
               transition={{ duration: 0.4, delay: 0.15 }}
             >
               <a href="#book">
                 <Button 
-                  variant="outline" 
-                  className="w-full py-6 text-xs tracking-[0.15em] uppercase font-sans backdrop-blur-sm transition-all duration-300"
+                  className="w-full py-6 text-xs tracking-[0.2em] uppercase font-medium backdrop-blur-sm transition-all duration-300 border-0 group/btn"
                   style={{ 
-                    borderColor: `${colors.cream}30`,
+                    background: `linear-gradient(135deg, ${colors.burntOrange}, ${colors.mediumBrown})`,
                     color: colors.cream,
-                    backgroundColor: `${colors.cream}08`
+                    boxShadow: `0 10px 30px ${colors.burntOrange}30`
                   }}
                 >
-                  Book Now
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <span>Reserve Experience</span>
+                  <motion.span
+                    className="inline-block ml-2"
+                    animate={{ x: isHovered ? 5 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </motion.span>
                 </Button>
               </a>
             </motion.div>
           </div>
         </div>
 
-        {/* Decorative corner */}
+        {/* Decorative corners */}
+        <motion.div
+          animate={{ opacity: isHovered ? 1 : 0.3 }}
+          transition={{ duration: 0.4 }}
+          className="absolute top-0 right-0 w-28 h-28 pointer-events-none"
+        >
+          <div 
+            className="absolute top-5 right-5 w-10 h-10 border-t-2 border-r-2 rounded-tr-2xl" 
+            style={{ borderColor: `${colors.cream}40` }}
+          />
+        </motion.div>
         <motion.div
           animate={{ opacity: isHovered ? 1 : 0 }}
           transition={{ duration: 0.4 }}
-          className="absolute top-0 right-0 w-24 h-24"
+          className="absolute bottom-0 left-0 w-28 h-28 pointer-events-none"
         >
           <div 
-            className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 rounded-tr-xl" 
-            style={{ borderColor: `${colors.cream}30` }}
+            className="absolute bottom-5 left-5 w-10 h-10 border-b-2 border-l-2 rounded-bl-2xl" 
+            style={{ borderColor: `${colors.burntOrange}40` }}
           />
         </motion.div>
       </div>
