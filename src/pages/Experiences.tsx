@@ -137,35 +137,34 @@ const ExperienceCard = ({ experience, index }: { experience: Experience; index: 
           opacity: isHovered ? 0.8 : 0,
           scale: isHovered ? 1.02 : 0.98
         }}
-        transition={{ duration: 0.6 }}
-        className="absolute -inset-3 rounded-[2.5rem] blur-2xl pointer-events-none"
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute -inset-4 rounded-[2.5rem] blur-2xl pointer-events-none"
         style={{ background: `radial-gradient(ellipse at center, ${colors.burntOrange}25, transparent 70%)` }}
       />
       
       {/* Main card */}
       <motion.div 
         animate={{ 
-          y: isHovered ? -8 : 0,
-          rotateX: isHovered ? 2 : 0
+          y: isHovered ? -12 : 0
         }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className="relative overflow-hidden rounded-[2rem]"
         style={{ 
           background: `linear-gradient(145deg, ${colors.darkBrown}, ${colors.deepRed}40)`,
           boxShadow: isHovered 
-            ? `0 30px 60px -20px ${colors.darkBrown}, 0 0 0 1px ${colors.cream}10, inset 0 1px 0 ${colors.cream}08`
-            : `0 20px 40px -15px ${colors.darkBrown}90, 0 0 0 1px ${colors.cream}05`
+            ? `0 40px 80px -25px ${colors.darkBrown}, 0 0 0 1px ${colors.cream}10, inset 0 1px 0 ${colors.cream}08`
+            : `0 25px 50px -15px ${colors.darkBrown}90, 0 0 0 1px ${colors.cream}05`
         }}
       >
         {/* Image section */}
-        <div className="relative aspect-[2/3] md:aspect-[1/2] lg:aspect-[9/16] overflow-hidden">
+        <div className="relative aspect-[4/5] md:aspect-[3/4] overflow-hidden">
           <motion.img
             src={experience.image}
             alt={experience.title}
             animate={{ 
-              scale: isHovered ? 1.15 : 1.05
+              scale: isHovered ? 1.08 : 1
             }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
             className="w-full h-full object-cover"
           />
           
@@ -1088,7 +1087,7 @@ const Experiences = () => {
         className="py-20 md:py-32"
         style={{ backgroundColor: colors.cream }}
       >
-        <div className="container max-w-6xl mx-auto px-6">
+        <div className="container max-w-7xl mx-auto px-6">
           {/* Section header */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -1114,8 +1113,8 @@ const Experiences = () => {
             </p>
           </motion.div>
 
-          {/* Cards grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Cards grid - 2 per row, 2 rows */}
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
             {experiences.map((experience, index) => (
               <ExperienceCard key={experience.id} experience={experience} index={index} />
             ))}
