@@ -48,13 +48,16 @@ interface Experience {
   gradient: string;
 }
 
-// Custom color palette
-const colors = {
-  darkBrown: "#442D1C",
-  deepRed: "#652810",
-  mediumBrown: "#8E5022",
-  burntOrange: "#C85428",
-  cream: "#EDD8B4"
+// Use semantic design tokens from the design system (matching Workshops page)
+
+const getExperienceTypeInfo = (id: string) => {
+  switch (id) {
+    case 'couple': return { label: 'Couples', icon: Heart, gradient: 'from-rose-500/20 to-pink-500/10' };
+    case 'birthday': return { label: 'Celebration', icon: Cake, gradient: 'from-amber-500/20 to-orange-500/10' };
+    case 'farm': return { label: 'Outdoor', icon: TreePine, gradient: 'from-emerald-500/20 to-teal-500/10' };
+    case 'studio': return { label: 'Studio', icon: Palette, gradient: 'from-violet-500/20 to-purple-500/10' };
+    default: return { label: 'Experience', icon: Sparkles, gradient: 'from-primary/20 to-primary/5' };
+  }
 };
 
 const experiences: Experience[] = [
@@ -69,7 +72,7 @@ const experiences: Experience[] = [
     priceValue: 3500,
     image: coupleImage,
     icon: <Heart className="w-5 h-5" />,
-    gradient: "from-[#652810]/95 via-[#442D1C]/90 to-[#442D1C]"
+    gradient: "from-rose-500/20 to-pink-500/10"
   },
   {
     id: "birthday",
@@ -82,7 +85,7 @@ const experiences: Experience[] = [
     priceValue: 12000,
     image: kidsImage,
     icon: <Cake className="w-5 h-5" />,
-    gradient: "from-[#8E5022]/95 via-[#652810]/90 to-[#442D1C]"
+    gradient: "from-amber-500/20 to-orange-500/10"
   },
   {
     id: "farm",
@@ -95,7 +98,7 @@ const experiences: Experience[] = [
     priceValue: 15000,
     image: studioImage,
     icon: <TreePine className="w-5 h-5" />,
-    gradient: "from-[#442D1C]/95 via-[#652810]/90 to-[#442D1C]"
+    gradient: "from-emerald-500/20 to-teal-500/10"
   },
   {
     id: "studio",
@@ -108,357 +111,155 @@ const experiences: Experience[] = [
     priceValue: 2500,
     image: handsImage,
     icon: <Palette className="w-5 h-5" />,
-    gradient: "from-[#C85428]/95 via-[#8E5022]/90 to-[#442D1C]"
+    gradient: "from-violet-500/20 to-purple-500/10"
   }
 ];
 
 const timeSlots = ["10:00 AM", "11:30 AM", "2:00 PM", "4:00 PM", "6:00 PM"];
 
-// Premium experience card with glass morphism and elegant animations
+// Experience card matching WorkshopCard design
 const ExperienceCard = ({ experience, index }: { experience: Experience; index: number }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const [isHovered, setIsHovered] = useState(false);
+  const typeInfo = getExperienceTypeInfo(experience.id);
+  const TypeIcon = typeInfo.icon;
 
   return (
-    <motion.div
-      ref={ref}
+    <motion.article
       id={experience.id}
       initial={{ opacity: 0, y: 60 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 1, delay: index * 0.2, ease: [0.22, 1, 0.36, 1] }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="group relative"
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.8, delay: index * 0.12, ease: [0.22, 1, 0.36, 1] }}
+      className="group cursor-pointer h-full"
     >
-      {/* Ambient glow */}
-      <motion.div
-        animate={{ 
-          opacity: isHovered ? 0.8 : 0,
-          scale: isHovered ? 1.02 : 0.98
-        }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className="absolute -inset-4 rounded-[2.5rem] blur-2xl pointer-events-none"
-        style={{ background: `radial-gradient(ellipse at center, ${colors.burntOrange}25, transparent 70%)` }}
-      />
-      
-      {/* Main card */}
-      <motion.div 
-        animate={{ 
-          y: isHovered ? -12 : 0
-        }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="relative overflow-hidden rounded-[2rem]"
-        style={{ 
-          background: `linear-gradient(145deg, ${colors.darkBrown}, ${colors.deepRed}40)`,
-          boxShadow: isHovered 
-            ? `0 40px 80px -25px ${colors.darkBrown}, 0 0 0 1px ${colors.cream}10, inset 0 1px 0 ${colors.cream}08`
-            : `0 25px 50px -15px ${colors.darkBrown}90, 0 0 0 1px ${colors.cream}05`
-        }}
-      >
-        {/* Image section */}
-        <div className="relative aspect-[4/5] md:aspect-[3/4] overflow-hidden">
-          <motion.img
-            src={experience.image}
-            alt={experience.title}
-            animate={{ 
-              scale: isHovered ? 1.08 : 1
-            }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full h-full object-cover"
-          />
-          
-          {/* Gradient overlays */}
-          <div 
-            className="absolute inset-0 transition-opacity duration-700"
-            style={{ 
-              background: `linear-gradient(180deg, 
-                ${colors.darkBrown}20 0%, 
-                ${colors.deepRed}60 40%, 
-                ${colors.darkBrown} 85%)`,
-              opacity: isHovered ? 0.95 : 0.9
-            }}
-          />
-          
-          {/* Vignette */}
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{ 
-              background: `radial-gradient(ellipse at center, transparent 30%, ${colors.darkBrown}90 100%)`
-            }}
-          />
-          
-          {/* Animated light sweep */}
-          <motion.div
-            initial={{ x: "-150%", opacity: 0 }}
-            animate={{ 
-              x: isHovered ? "150%" : "-150%",
-              opacity: isHovered ? 1 : 0
-            }}
-            transition={{ duration: 1, ease: "easeInOut" }}
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: `linear-gradient(105deg, transparent 40%, ${colors.cream}08 50%, transparent 60%)`,
-            }}
-          />
-          
-          {/* Bottom warm glow */}
-          <motion.div
-            animate={{ opacity: isHovered ? 0.6 : 0.2 }}
-            transition={{ duration: 0.8 }}
-            className="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none"
-            style={{ 
-              background: `linear-gradient(to top, ${colors.burntOrange}30, transparent)` 
-            }}
-          />
-        </div>
-
-        {/* Glass overlay content panel */}
-        <div className="absolute inset-0 flex flex-col justify-between p-6 md:p-8">
-          
-          {/* Top row - Icon & Price */}
-          <div className="flex justify-between items-start">
-            {/* Floating icon */}
+      <a href="#book" className="block h-full">
+        <div className="relative h-full bg-card rounded-[1.5rem] overflow-hidden border border-border/20 hover:border-primary/30 transition-all duration-700 hover:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.15)]">
+          {/* Image Container with cinematic aspect */}
+          <div className="aspect-[4/3] overflow-hidden relative">
             <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.8 }}
-              animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-              transition={{ duration: 0.8, delay: 0.3 + index * 0.1, type: "spring", bounce: 0.4 }}
+              className="absolute inset-0"
+              whileHover={{ scale: 1.08 }}
+              transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
             >
-              <motion.div 
-                animate={{ 
-                  y: isHovered ? -4 : 0,
-                  rotate: isHovered ? 5 : 0
-                }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="relative"
-              >
-                {/* Icon glow */}
-                <motion.div 
-                  animate={{ opacity: isHovered ? 1 : 0 }}
-                  className="absolute inset-0 rounded-2xl blur-lg"
-                  style={{ background: colors.burntOrange, opacity: 0.4 }}
-                />
-                <div 
-                  className="relative w-14 h-14 rounded-2xl backdrop-blur-xl border flex items-center justify-center"
-                  style={{ 
-                    background: `linear-gradient(135deg, ${colors.cream}15, ${colors.cream}05)`,
-                    borderColor: `${colors.cream}20`,
-                    boxShadow: `inset 0 1px 0 ${colors.cream}10, 0 10px 30px ${colors.darkBrown}50`
-                  }}
-                >
-                  <span style={{ color: colors.cream }}>{experience.icon}</span>
-                </div>
-              </motion.div>
+              <img
+                src={experience.image}
+                alt={experience.title}
+                className="w-full h-full object-cover"
+              />
             </motion.div>
-
-            {/* Price tag */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={isInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
-            >
+            
+            {/* Cinematic gradient overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-br from-charcoal/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            
+            {/* Top Badges */}
+            <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
+              {/* Type Badge with gradient */}
               <motion.div 
-                animate={{ 
-                  scale: isHovered ? 1.08 : 1,
-                  y: isHovered ? -2 : 0
-                }}
-                transition={{ duration: 0.4, type: "spring" }}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 + 0.4, duration: 0.5 }}
+                className={`flex items-center gap-2 px-4 py-2 bg-gradient-to-r ${typeInfo.gradient} backdrop-blur-xl rounded-full border border-cream/10`}
+              >
+                <TypeIcon className="w-4 h-4 text-cream" />
+                <span className="text-xs font-medium text-cream tracking-wide">{typeInfo.label}</span>
+              </motion.div>
+              
+              {/* Price Badge - Premium styling */}
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 + 0.4, duration: 0.5 }}
                 className="relative"
               >
-                {/* Price glow */}
-                <motion.div 
-                  animate={{ opacity: isHovered ? 1 : 0 }}
-                  className="absolute inset-0 rounded-full blur-md"
-                  style={{ background: colors.burntOrange, opacity: 0.3 }}
-                />
-                <div 
-                  className="relative px-5 py-2.5 rounded-full backdrop-blur-xl border"
-                  style={{ 
-                    background: `linear-gradient(135deg, ${colors.burntOrange}30, ${colors.mediumBrown}20)`,
-                    borderColor: `${colors.cream}25`,
-                    boxShadow: `inset 0 1px 0 ${colors.cream}15, 0 8px 20px ${colors.darkBrown}40`
-                  }}
-                >
-                  <span className="font-semibold text-sm tracking-wide" style={{ color: colors.cream }}>
+                <div className="absolute inset-0 bg-cream blur-sm opacity-50" />
+                <div className="relative px-4 py-2 bg-cream rounded-full shadow-xl">
+                  <span className="text-sm font-bold text-charcoal tracking-tight">
                     {experience.price}
                   </span>
                 </div>
               </motion.div>
-            </motion.div>
-          </div>
+            </div>
 
-          {/* Bottom content */}
-          <div className="space-y-4">
-            {/* Animated accent line */}
-            <motion.div className="flex items-center gap-3">
-              <motion.div
-                animate={{ width: isHovered ? 50 : 30, opacity: isHovered ? 1 : 0.6 }}
-                transition={{ duration: 0.5 }}
-                className="h-[2px] rounded-full"
-                style={{ background: `linear-gradient(to right, ${colors.burntOrange}, ${colors.cream}40)` }}
-              />
-              <motion.div
-                animate={{ opacity: isHovered ? 1 : 0 }}
-                transition={{ duration: 0.3 }}
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ background: colors.burntOrange }}
-              />
-            </motion.div>
-            
-            {/* Tagline */}
-            <motion.p
-              animate={{ 
-                y: isHovered ? -4 : 0,
-                opacity: isHovered ? 1 : 0.7
-              }}
-              transition={{ duration: 0.4 }}
-              className="text-[11px] tracking-[0.25em] uppercase font-medium"
-              style={{ color: colors.burntOrange }}
-            >
-              {experience.tagline}
-            </motion.p>
-
-            {/* Title */}
-            <motion.h3
-              animate={{ y: isHovered ? -4 : 0 }}
-              transition={{ duration: 0.4, delay: 0.05 }}
-              className="font-serif text-2xl md:text-3xl lg:text-[2.5rem] leading-[1.1] tracking-tight"
-              style={{ color: colors.cream }}
-            >
-              {experience.title}
-            </motion.h3>
-
-            {/* Expandable content */}
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ 
-                height: isHovered ? "auto" : 0,
-                opacity: isHovered ? 1 : 0
-              }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="overflow-hidden"
-            >
-              <p 
-                className="text-sm leading-relaxed mb-6 max-w-[90%]" 
-                style={{ color: `${colors.cream}80` }}
+            {/* Bottom Content on Image */}
+            <div className="absolute bottom-0 left-0 right-0 p-6">
+              <motion.h3 
+                className="font-serif text-2xl md:text-3xl font-medium text-cream leading-tight mb-2"
+                style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}
               >
-                {experience.description}
-              </p>
-              
-              {/* Info pills */}
-              <div className="flex flex-wrap gap-3 mb-6">
-                <div 
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs"
-                  style={{ 
-                    background: `${colors.cream}08`,
-                    border: `1px solid ${colors.cream}15`
-                  }}
-                >
-                  <Clock className="w-3.5 h-3.5" style={{ color: colors.burntOrange }} />
-                  <span style={{ color: `${colors.cream}90` }}>{experience.duration}</span>
-                </div>
-                <div 
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs"
-                  style={{ 
-                    background: `${colors.cream}08`,
-                    border: `1px solid ${colors.cream}15`
-                  }}
-                >
-                  <Users className="w-3.5 h-3.5" style={{ color: colors.burntOrange }} />
-                  <span style={{ color: `${colors.cream}90` }}>Private Session</span>
-                </div>
-              </div>
-              
-              {/* Includes with stagger */}
-              <div className="space-y-2.5 mb-6">
-                {experience.includes.slice(0, 3).map((item, i) => (
-                  <motion.div 
-                    key={i}
-                    initial={{ opacity: 0, x: -15 }}
-                    animate={isHovered ? { opacity: 1, x: 0 } : { opacity: 0, x: -15 }}
-                    transition={{ delay: 0.15 + i * 0.08, duration: 0.4 }}
-                    className="flex items-center gap-3 text-sm"
-                  >
-                    <div 
-                      className="w-5 h-5 rounded-full flex items-center justify-center"
-                      style={{ background: `${colors.burntOrange}20` }}
-                    >
-                      <Star className="w-2.5 h-2.5" style={{ color: colors.burntOrange }} />
-                    </div>
-                    <span style={{ color: `${colors.cream}75` }}>{item}</span>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
+                {experience.title}
+              </motion.h3>
+              {experience.tagline && (
+                <p className="text-sm text-cream/70 italic">
+                  "{experience.tagline}"
+                </p>
+              )}
+            </div>
 
-            {/* CTA Button */}
-            <motion.div
-              animate={{ 
-                y: isHovered ? 0 : 20,
-                opacity: isHovered ? 1 : 0
-              }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <a href="#book" className="block">
-                <motion.button 
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full py-4 rounded-xl text-xs tracking-[0.2em] uppercase font-semibold transition-all duration-300 flex items-center justify-center gap-3"
-                  style={{ 
-                    background: `linear-gradient(135deg, ${colors.burntOrange}, ${colors.deepRed})`,
-                    color: colors.cream,
-                    boxShadow: `0 15px 35px -10px ${colors.burntOrange}50, inset 0 1px 0 ${colors.cream}15`
-                  }}
+            {/* Elegant Hover Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center bg-charcoal/50 backdrop-blur-[3px] opacity-0 group-hover:opacity-100 transition-all duration-500">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                whileHover={{ scale: 1 }}
+                className="opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100"
+              >
+                <Button 
+                  size="lg" 
+                  className="bg-cream text-charcoal hover:bg-cream/95 gap-3 shadow-2xl px-8 h-14 text-base font-medium"
                 >
-                  <span>Reserve Now</span>
-                  <motion.div
-                    animate={{ x: isHovered ? 4 : 0 }}
-                    transition={{ duration: 0.3, repeat: isHovered ? Infinity : 0, repeatType: "reverse", repeatDelay: 0.5 }}
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                  </motion.div>
-                </motion.button>
-              </a>
-            </motion.div>
+                  Book Now
+                  <ArrowRight className="w-5 h-5" />
+                </Button>
+              </motion.div>
+            </div>
           </div>
-        </div>
 
-        {/* Decorative elements */}
-        <motion.div
-          animate={{ opacity: isHovered ? 0.8 : 0.2, scale: isHovered ? 1 : 0.9 }}
-          transition={{ duration: 0.5 }}
-          className="absolute top-4 right-4 w-20 h-20 pointer-events-none"
-        >
-          <div 
-            className="absolute top-0 right-0 w-12 h-12 border-t border-r rounded-tr-2xl" 
-            style={{ borderColor: `${colors.cream}30` }}
-          />
-        </motion.div>
-        
-        <motion.div
-          animate={{ opacity: isHovered ? 0.8 : 0, scale: isHovered ? 1 : 0.9 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="absolute bottom-4 left-4 w-20 h-20 pointer-events-none"
-        >
-          <div 
-            className="absolute bottom-0 left-0 w-12 h-12 border-b border-l rounded-bl-2xl" 
-            style={{ borderColor: `${colors.burntOrange}50` }}
-          />
-        </motion.div>
-        
-        {/* Floating orb decoration */}
-        <motion.div
-          animate={{ 
-            opacity: isHovered ? 0.6 : 0,
-            y: isHovered ? 0 : 10,
-            scale: isHovered ? 1 : 0.8
-          }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="absolute top-1/3 right-6 w-2 h-2 rounded-full pointer-events-none"
-          style={{ background: colors.burntOrange, boxShadow: `0 0 15px ${colors.burntOrange}` }}
-        />
-      </motion.div>
-    </motion.div>
+          {/* Content Section */}
+          <div className="p-6 space-y-5">
+            {/* Description */}
+            <p className="text-muted-foreground line-clamp-2 leading-relaxed">
+              {experience.description}
+            </p>
+
+            {/* Meta Info Pills */}
+            <div className="flex flex-wrap gap-2">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-muted/40 rounded-full text-sm text-muted-foreground">
+                <Clock className="w-4 h-4 text-primary/70" />
+                <span>{experience.duration}</span>
+              </div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-muted/40 rounded-full text-sm text-muted-foreground">
+                <Users className="w-4 h-4 text-primary/70" />
+                <span>Private</span>
+              </div>
+            </div>
+
+            {/* Includes preview */}
+            <div className="space-y-2">
+              {experience.includes.slice(0, 2).map((item, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Star className="w-3 h-3 text-primary/70" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer with CTA */}
+            <div className="flex items-center justify-between pt-4 border-t border-border/30">
+              <span className="text-sm text-muted-foreground">Flexible scheduling</span>
+              
+              <motion.div 
+                className="flex items-center gap-2 text-primary font-medium opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-2 group-hover:translate-x-0"
+              >
+                <span className="text-sm">Book Now</span>
+                <ArrowRight className="w-4 h-4" />
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Subtle corner accent */}
+          <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-primary/5 to-transparent rounded-tl-[4rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+        </div>
+      </a>
+    </motion.article>
   );
 };
 
@@ -878,8 +679,7 @@ const StatsSection = () => {
   return (
     <section 
       ref={ref} 
-      className="py-20 border-y"
-      style={{ backgroundColor: colors.cream, borderColor: `${colors.mediumBrown}20` }}
+      className="py-20 border-y border-border/20 bg-card"
     >
       <div className="container max-w-5xl mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -891,16 +691,10 @@ const StatsSection = () => {
               transition={{ duration: 0.6, delay: i * 0.1 }}
               className="text-center"
             >
-              <span 
-                className="block font-serif text-4xl md:text-5xl mb-2"
-                style={{ color: colors.darkBrown }}
-              >
+              <span className="block font-serif text-4xl md:text-5xl mb-2 text-foreground">
                 {stat.number}
               </span>
-              <span 
-                className="text-sm tracking-wide"
-                style={{ color: colors.mediumBrown }}
-              >
+              <span className="text-sm tracking-wide text-muted-foreground">
                 {stat.label}
               </span>
             </motion.div>
@@ -933,7 +727,7 @@ const Experiences = () => {
   }, [location.hash]);
 
   return (
-    <div className="min-h-screen bg-sand">
+    <div className="min-h-screen bg-charcoal overflow-x-hidden">
       <Helmet>
         <title>Experiences | Basho by Shivangi - Create Moments with Clay</title>
         <meta
@@ -944,136 +738,160 @@ const Experiences = () => {
 
       <Navigation />
 
-      {/* Hero Section - Clean & Elegant */}
+      {/* Hero Section - Matching Workshops page */}
       <section 
         ref={heroRef} 
         className="relative min-h-[90vh] flex items-center justify-center overflow-hidden"
-        style={{ backgroundColor: colors.darkBrown }}
       >
-        {/* Background Image with Parallax */}
+        {/* Parallax Background Image */}
         <motion.div 
           style={{ scale: heroScale }}
-          className="absolute inset-0 z-0"
+          className="absolute inset-0"
         >
           <img
             src={potteryCollection}
             alt="Pottery collection"
-            className="w-full h-full object-cover opacity-40"
+            className="w-full h-full object-cover"
           />
-          <div 
-            className="absolute inset-0" 
-            style={{ 
-              background: `linear-gradient(to bottom, ${colors.darkBrown}ee, ${colors.deepRed}aa, ${colors.darkBrown})` 
-            }} 
-          />
+          {/* Cinematic gradient overlays */}
+          <div className="absolute inset-0 bg-gradient-to-b from-charcoal/60 via-charcoal/40 to-charcoal/80" />
+          <div className="absolute inset-0 bg-gradient-to-r from-charcoal/50 via-transparent to-charcoal/50" />
+          {/* Vignette effect */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_hsl(var(--charcoal)/0.4)_100%)]" />
         </motion.div>
 
-        {/* Hero Content */}
-        <motion.div 
-          className="relative z-10 text-center px-6 max-w-4xl mx-auto"
-        >
-          {/* Decorative element */}
+        {/* Floating decorative elements */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <motion.div
-            initial={{ opacity: 0, scale: 0 }}
-            animate={isHeroInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="inline-flex items-center gap-3 mb-8"
-          >
-            <span className="w-12 h-px" style={{ background: `linear-gradient(to right, transparent, ${colors.burntOrange}99)` }} />
-            <Sparkles className="w-5 h-5" style={{ color: colors.burntOrange }} />
-            <span className="w-12 h-px" style={{ background: `linear-gradient(to left, transparent, ${colors.burntOrange}99)` }} />
-          </motion.div>
+            animate={{ y: [0, -30, 0], x: [0, 10, 0] }}
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-1/4 left-[10%] w-2 h-2 rounded-full bg-cream/30"
+          />
+          <motion.div
+            animate={{ y: [0, 20, 0], x: [0, -15, 0] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            className="absolute top-1/3 right-[15%] w-3 h-3 rounded-full bg-cream/20"
+          />
+        </div>
 
-          {/* Tagline */}
-          <motion.span
-            initial={{ opacity: 0, y: 20 }}
-            animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="block font-sans text-xs tracking-[0.4em] uppercase mb-6"
-            style={{ color: `${colors.burntOrange}cc` }}
-          >
-            Curated Pottery Experiences
-          </motion.span>
-
-          {/* Main heading */}
-          <motion.h1
+        {/* Content */}
+        <motion.div 
+          style={{ opacity: heroOpacity }}
+          className="relative z-10 container px-6 text-center"
+        >
+          <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 1, delay: 0.4 }}
-            className="font-serif text-5xl md:text-7xl lg:text-8xl leading-[0.95] mb-8"
-            style={{ color: colors.cream }}
+            transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
+            className="max-w-4xl mx-auto"
           >
-            Create Moments
-            <br />
-            <span className="italic font-light" style={{ color: `${colors.cream}cc` }}>with Clay</span>
-          </motion.h1>
+            {/* Decorative line */}
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={isHeroInView ? { scaleX: 1 } : {}}
+              transition={{ delay: 0.2, duration: 0.8 }}
+              className="w-16 h-px bg-cream/40 mx-auto mb-8"
+            />
+            
+            <motion.span 
+              initial={{ opacity: 0, y: 20 }}
+              animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.3 }}
+              className="inline-flex items-center gap-3 text-xs tracking-[0.4em] uppercase text-cream/70 mb-6"
+            >
+              <span className="w-8 h-px bg-cream/40" />
+              Curated Pottery Experiences
+              <span className="w-8 h-px bg-cream/40" />
+            </motion.span>
+            
+            <motion.h1 
+              initial={{ opacity: 0, y: 30 }}
+              animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.4, duration: 1 }}
+              className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-cream mb-6 leading-[0.95]"
+            >
+              Create Moments<br />
+              <span className="italic font-light text-cream/80">with Clay</span>
+            </motion.h1>
+            
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="text-cream/60 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
+            >
+              Intimate gatherings where hands meet clay, 
+              creating memories that endure beyond the moment.
+            </motion.p>
 
-          {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="font-sans text-lg md:text-xl max-w-xl mx-auto leading-relaxed mb-12"
-            style={{ color: `${colors.cream}99` }}
-          >
-            Intimate gatherings where hands meet clay, 
-            creating memories that endure beyond the moment.
-          </motion.p>
-
-          {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
-            <a href="#experiences">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.6, duration: 0.8 }}
+              className="flex flex-wrap justify-center gap-4"
+            >
               <Button 
-                className="px-8 py-6 text-xs tracking-[0.15em] uppercase font-sans text-white shadow-lg"
-                style={{ 
-                  background: `linear-gradient(to right, ${colors.burntOrange}, ${colors.mediumBrown})`,
-                  boxShadow: `0 10px 30px ${colors.burntOrange}30`
-                }}
+                size="lg" 
+                className="bg-cream text-charcoal hover:bg-cream/90 px-8 h-14 text-base font-medium tracking-wide group"
+                onClick={() => document.getElementById('experiences')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 Explore Experiences
-                <ArrowDown className="w-4 h-4 ml-2" />
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
-            </a>
-            <a href="#book">
               <Button 
-                variant="outline"
-                className="px-8 py-6 text-xs tracking-[0.15em] uppercase font-sans"
-                style={{ 
-                  borderColor: `${colors.cream}40`,
-                  color: colors.cream,
-                  backgroundColor: 'transparent'
-                }}
+                variant="outline" 
+                size="lg" 
+                className="border-cream/30 text-cream hover:bg-cream/10 px-8 h-14 text-base font-medium tracking-wide"
+                onClick={() => document.getElementById('book')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 Book Now
               </Button>
-            </a>
-          </motion.div>
-        </motion.div>
+            </motion.div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isHeroInView ? { opacity: 1 } : {}}
-          transition={{ delay: 1.2 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
+            {/* Stats Row */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={isHeroInView ? { opacity: 1 } : {}}
+              transition={{ delay: 0.8 }}
+              className="flex flex-wrap justify-center gap-8 md:gap-16 mt-16 pt-8 border-t border-cream/10"
+            >
+              {[
+                { value: "500+", label: "Happy Guests" },
+                { value: "4.9", label: "Rating", icon: Star },
+                { value: "4+", label: "Experience Types" },
+              ].map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ delay: 0.9 + i * 0.1 }}
+                  className="text-center"
+                >
+                  <div className="flex items-center justify-center gap-1 text-2xl md:text-3xl font-serif text-cream">
+                    {stat.value}
+                    {stat.icon && <stat.icon className="w-5 h-5 fill-cream text-cream" />}
+                  </div>
+                  <div className="text-xs tracking-widest uppercase text-cream/50 mt-1">{stat.label}</div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+
+          {/* Scroll Indicator */}
           <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="w-6 h-10 rounded-full border-2 flex items-start justify-center p-1.5"
-            style={{ borderColor: `${colors.cream}40` }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2"
           >
             <motion.div
               animate={{ y: [0, 12, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="w-1.5 h-3 rounded-full"
-              style={{ backgroundColor: `${colors.cream}60` }}
-            />
+              transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+              className="flex flex-col items-center gap-2"
+            >
+              <span className="text-[10px] tracking-[0.3em] uppercase text-cream/40">Scroll</span>
+              <ArrowDown className="w-5 h-5 text-cream/40" />
+            </motion.div>
           </motion.div>
         </motion.div>
       </section>
@@ -1084,10 +902,15 @@ const Experiences = () => {
       {/* Experience Cards Grid */}
       <section 
         id="experiences" 
-        className="py-20 md:py-32"
-        style={{ backgroundColor: colors.cream }}
+        className="py-20 md:py-32 bg-gradient-to-b from-background via-card to-background relative overflow-hidden"
       >
-        <div className="container max-w-7xl mx-auto px-6">
+        {/* Ambient glow */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[100px]" />
+          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-primary/5 blur-[100px]" />
+        </div>
+        
+        <div className="container max-w-7xl mx-auto px-6 relative">
           {/* Section header */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -1096,19 +919,19 @@ const Experiences = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <span 
-              className="block font-sans text-xs tracking-[0.3em] uppercase mb-4"
-              style={{ color: colors.burntOrange }}
-            >
-              Our Offerings
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              className="w-12 h-px bg-primary/50 mx-auto mb-6"
+            />
+            <span className="inline-block text-xs tracking-[0.3em] uppercase text-primary/70 mb-4">
+              Curated For You
             </span>
-            <h2 
-              className="font-serif text-4xl md:text-5xl mb-4"
-              style={{ color: colors.darkBrown }}
-            >
-              Choose Your Experience
+            <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl text-foreground mb-4">
+              Choose Your <span className="italic font-light">Experience</span>
             </h2>
-            <p style={{ color: colors.mediumBrown }} className="max-w-lg mx-auto">
+            <p className="text-muted-foreground max-w-xl mx-auto text-lg">
               From intimate couple sessions to joyful celebrations, each experience is designed to create lasting connections.
             </p>
           </motion.div>
@@ -1130,10 +953,7 @@ const Experiences = () => {
             alt="Pottery glazing process"
             className="w-full h-full object-cover"
           />
-          <div 
-            className="absolute inset-0" 
-            style={{ backgroundColor: `${colors.darkBrown}dd` }} 
-          />
+          <div className="absolute inset-0 bg-charcoal/85" />
         </div>
         
         <div className="container relative z-10 max-w-4xl mx-auto px-6 text-center">
@@ -1143,19 +963,13 @@ const Experiences = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <span 
-              className="block font-sans text-xs tracking-[0.3em] uppercase mb-6"
-              style={{ color: `${colors.burntOrange}cc` }}
-            >
+            <span className="block font-sans text-xs tracking-[0.3em] uppercase text-cream/60 mb-6">
               Our Philosophy
             </span>
-            <blockquote 
-              className="font-serif text-3xl md:text-4xl lg:text-5xl leading-relaxed mb-8 italic"
-              style={{ color: colors.cream }}
-            >
+            <blockquote className="font-serif text-3xl md:text-4xl lg:text-5xl leading-relaxed mb-8 italic text-cream">
               "Every imperfection tells a story of human touch. Every piece carries the warmth of the moment it was made."
             </blockquote>
-            <p style={{ color: `${colors.cream}99` }}>— Shivangi, Founder</p>
+            <p className="text-cream/60">— Shivangi, Founder</p>
           </motion.div>
         </div>
       </section>
