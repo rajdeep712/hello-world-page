@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { motion, useInView, useScroll, useTransform, AnimatePresence, MotionValue } from "framer-motion";
-import { Calendar, Clock, Users, Heart, Cake, TreePine, Palette, LogIn, Sparkles, Star, ArrowRight, ArrowDown, Play, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, useInView, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { Calendar, Clock, Users, Heart, Cake, TreePine, Palette, LogIn, Sparkles, Star, ArrowRight, ArrowDown, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +25,8 @@ import kidsImage from "@/assets/workshops/kids-clay-play.jpg";
 import studioImage from "@/assets/studio/studio-interior.jpg";
 import handsImage from "@/assets/hero/pottery-hands-clay.jpg";
 import potteryCollection from "@/assets/hero/pottery-collection.jpg";
+import kilnImage from "@/assets/studio/kiln.jpg";
+import glazingImage from "@/assets/studio/pottery-glazing.jpg";
 
 declare global {
   interface Window {
@@ -43,7 +45,7 @@ interface Experience {
   priceValue: number;
   image: string;
   icon: React.ReactNode;
-  accentColor: string;
+  gradient: string;
 }
 
 const experiences: Experience[] = [
@@ -54,11 +56,11 @@ const experiences: Experience[] = [
     description: "An intimate evening where hands meet clay. Create keepsakes that hold the warmth of shared moments, guided gently through each step.",
     includes: ["Private session for two", "Guided assistance", "Keepsake piece to take home", "Refreshments"],
     duration: "90 minutes",
-    price: "₹3,500 per couple",
+    price: "₹3,500",
     priceValue: 3500,
     image: coupleImage,
-    icon: <Heart className="w-6 h-6" />,
-    accentColor: "from-rose-500/20 via-rose-400/10"
+    icon: <Heart className="w-5 h-5" />,
+    gradient: "from-rose-900/90 via-rose-950/80 to-stone-950"
   },
   {
     id: "birthday",
@@ -67,320 +69,187 @@ const experiences: Experience[] = [
     description: "A gathering that turns into lasting memories. Small groups, customizable themes, and pieces that carry the joy of the day.",
     includes: ["Small group celebration (up to 8)", "Customizable themes", "Take-home pieces", "Optional decoration & setup"],
     duration: "2 hours",
-    price: "₹12,000 onwards",
+    price: "₹12,000",
     priceValue: 12000,
     image: kidsImage,
-    icon: <Cake className="w-6 h-6" />,
-    accentColor: "from-amber-500/20 via-amber-400/10"
+    icon: <Cake className="w-5 h-5" />,
+    gradient: "from-amber-900/90 via-amber-950/80 to-stone-950"
   },
   {
     id: "farm",
-    title: "Farm & Garden Mini Parties",
+    title: "Farm & Garden Parties",
     tagline: "Clay under open skies",
     description: "Friends, family, or colleagues gathering in nature. Creative bonding where conversations flow as freely as the clay.",
     includes: ["Outdoor setting", "Small private groups (6-12)", "All materials provided", "Refreshments & ambiance"],
     duration: "2-3 hours",
-    price: "₹15,000 onwards",
+    price: "₹15,000",
     priceValue: 15000,
     image: studioImage,
-    icon: <TreePine className="w-6 h-6" />,
-    accentColor: "from-emerald-500/20 via-emerald-400/10"
+    icon: <TreePine className="w-5 h-5" />,
+    gradient: "from-emerald-900/90 via-emerald-950/80 to-stone-950"
   },
   {
     id: "studio",
-    title: "Studio-Based Experiences",
+    title: "Studio Experiences",
     tagline: "The heart of creation",
-    description: "Step into our studio space—where the wheel turns, kilns breathe, and every surface holds a story. Perfect for intimate gatherings seeking authenticity.",
-    includes: ["Full studio access", "Personalized guidance", "Materials & firing", "Peaceful, creative atmosphere"],
+    description: "Step into our studio space—where the wheel turns, kilns breathe, and every surface holds a story. Perfect for intimate gatherings.",
+    includes: ["Full studio access", "Personalized guidance", "Materials & firing", "Peaceful atmosphere"],
     duration: "Flexible",
-    price: "₹2,500 per person",
+    price: "₹2,500",
     priceValue: 2500,
     image: handsImage,
-    icon: <Palette className="w-6 h-6" />,
-    accentColor: "from-terracotta/20 via-terracotta/10"
+    icon: <Palette className="w-5 h-5" />,
+    gradient: "from-orange-900/90 via-orange-950/80 to-stone-950"
   }
 ];
 
-const timeSlots = [
-  "10:00 AM",
-  "11:30 AM",
-  "2:00 PM",
-  "4:00 PM",
-  "6:00 PM"
-];
+const timeSlots = ["10:00 AM", "11:30 AM", "2:00 PM", "4:00 PM", "6:00 PM"];
 
-// Animated grain overlay
-const GrainOverlay = () => (
-  <div 
-    className="pointer-events-none fixed inset-0 z-50 opacity-[0.015]"
-    style={{
-      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-    }}
-  />
-);
-
-// Floating orb component
-const FloatingOrb = ({ 
-  className, 
-  size = "lg",
-  delay = 0 
-}: { 
-  className?: string; 
-  size?: "sm" | "md" | "lg";
-  delay?: number;
-}) => {
-  const sizeClasses = {
-    sm: "w-32 h-32",
-    md: "w-64 h-64",
-    lg: "w-96 h-96"
-  };
+// Elegant experience card with hover effects
+const ExperienceCard = ({ experience, index }: { experience: Experience; index: number }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.5 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 2, delay, ease: "easeOut" }}
-      className={cn("absolute rounded-full blur-3xl pointer-events-none", sizeClasses[size], className)}
-    >
-      <motion.div
-        animate={{ 
-          scale: [1, 1.2, 1],
-          rotate: [0, 180, 360]
-        }}
-        transition={{ 
-          duration: 20 + Math.random() * 10,
-          repeat: Infinity,
-          ease: "linear"
-        }}
-        className="w-full h-full rounded-full bg-gradient-radial from-current to-transparent opacity-40"
-      />
-    </motion.div>
-  );
-};
-
-// Magnetic button component
-const MagneticButton = ({ children, className, ...props }: React.ComponentProps<typeof Button>) => {
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const button = buttonRef.current;
-    if (!button) return;
-    
-    const rect = button.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    
-    button.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
-  };
-
-  const handleMouseLeave = () => {
-    const button = buttonRef.current;
-    if (!button) return;
-    button.style.transform = 'translate(0, 0)';
-  };
-
-  return (
-    <Button
-      ref={buttonRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className={cn("transition-transform duration-300 ease-out", className)}
-      {...props}
-    >
-      {children}
-    </Button>
-  );
-};
-
-// Full-screen experience card
-const FullScreenExperienceCard = ({ 
-  experience, 
-  index,
-  isActive 
-}: { 
-  experience: Experience; 
-  index: number;
-  isActive: boolean;
-}) => {
-  const cardRef = useRef(null);
-  const isInView = useInView(cardRef, { once: true, amount: 0.3 });
-
-  return (
-    <motion.div
-      ref={cardRef}
+      ref={ref}
       id={experience.id}
-      className="relative min-h-screen flex items-center overflow-hidden"
+      initial={{ opacity: 0, y: 80 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.8, delay: index * 0.15, ease: [0.25, 0.1, 0.25, 1] }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="group relative"
     >
-      {/* Background image with parallax */}
-      <motion.div 
-        initial={{ scale: 1.2 }}
-        animate={{ scale: isInView ? 1 : 1.2 }}
-        transition={{ duration: 1.5, ease: [0.25, 0.1, 0.25, 1] }}
-        className="absolute inset-0"
-      >
-        <img
-          src={experience.image}
-          alt={experience.title}
-          className="w-full h-full object-cover"
-        />
-        {/* Dramatic overlays */}
-        <div className="absolute inset-0 bg-gradient-to-r from-charcoal via-charcoal/80 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-charcoal/30" />
-        <div className={cn(
-          "absolute inset-0 bg-gradient-to-br to-transparent opacity-60",
-          experience.accentColor
-        )} />
-      </motion.div>
-
-      {/* Experience number */}
-      <motion.div
-        initial={{ opacity: 0, x: -100 }}
-        animate={isInView ? { opacity: 0.1, x: 0 } : {}}
-        transition={{ duration: 1, delay: 0.3 }}
-        className="absolute left-8 md:left-16 top-1/2 -translate-y-1/2"
-      >
-        <span className="font-serif text-[20vw] md:text-[15vw] text-parchment/5 leading-none select-none">
-          0{index + 1}
-        </span>
-      </motion.div>
-
-      {/* Content */}
-      <div className="container relative z-10 px-6 md:px-16 py-32">
-        <div className="max-w-3xl">
-          {/* Icon badge */}
+      <div className="relative overflow-hidden rounded-3xl bg-stone-900">
+        {/* Image container */}
+        <div className="relative aspect-[3/4] md:aspect-[4/5] overflow-hidden">
+          <motion.img
+            src={experience.image}
+            alt={experience.title}
+            animate={{ scale: isHovered ? 1.08 : 1 }}
+            transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+            className="w-full h-full object-cover"
+          />
+          
+          {/* Gradient overlays */}
+          <div className={cn(
+            "absolute inset-0 bg-gradient-to-t opacity-90 transition-opacity duration-500",
+            experience.gradient
+          )} />
+          <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/20 to-transparent opacity-80" />
+          
+          {/* Hover glow effect */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.5, rotate: -45 }}
-            animate={isInView ? { opacity: 1, scale: 1, rotate: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.2, type: "spring" }}
-            className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-parchment/10 backdrop-blur-sm border border-parchment/20 mb-10"
-          >
-            <span className="text-parchment">{experience.icon}</span>
-          </motion.div>
-
-          {/* Tagline */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="flex items-center gap-4 mb-6"
-          >
-            <motion.span 
-              initial={{ scaleX: 0 }}
-              animate={isInView ? { scaleX: 1 } : {}}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              className="w-12 h-px bg-gradient-to-r from-terracotta to-transparent origin-left" 
-            />
-            <span className="text-sm font-sans tracking-[0.3em] uppercase text-terracotta">
-              {experience.tagline}
-            </span>
-          </motion.div>
-
-          {/* Title with staggered letters */}
-          <motion.h2
-            initial={{ opacity: 0, y: 50 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 1, delay: 0.4 }}
-            className="font-serif text-5xl md:text-7xl lg:text-8xl text-parchment leading-[0.95] mb-8"
-          >
-            {experience.title}
-          </motion.h2>
-
-          {/* Description */}
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="text-parchment/70 text-lg md:text-xl leading-relaxed max-w-xl mb-12"
-          >
-            {experience.description}
-          </motion.p>
-
-          {/* Includes grid */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="grid grid-cols-2 gap-4 mb-12"
-          >
-            {experience.includes.map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -20 }}
-                animate={isInView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.5, delay: 0.7 + i * 0.1 }}
-                className="flex items-start gap-3 text-parchment/60"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-terracotta/60 mt-2 flex-shrink-0" />
-                <span className="text-sm">{item}</span>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* Price & Duration row */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="flex flex-wrap items-center gap-8 mb-12"
-          >
-            <div className="flex items-center gap-3 text-parchment/50">
-              <Clock className="w-5 h-5" />
-              <span className="text-sm tracking-wide">{experience.duration}</span>
-            </div>
-            <div className="h-4 w-px bg-parchment/20" />
-            <span className="font-serif text-3xl md:text-4xl text-parchment">
-              {experience.price}
-            </span>
-          </motion.div>
-
-          {/* CTA Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.9 }}
-          >
-            <a href="#book">
-              <MagneticButton
-                variant="outline"
-                className="group relative px-10 py-7 text-xs tracking-[0.2em] uppercase font-sans border-parchment/30 text-parchment bg-transparent hover:bg-parchment hover:text-charcoal transition-all duration-500 overflow-hidden"
-              >
-                <span className="relative z-10 flex items-center gap-3">
-                  Book This Experience
-                  <motion.span
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                  </motion.span>
-                </span>
-              </MagneticButton>
-            </a>
-          </motion.div>
+            animate={{ opacity: isHovered ? 0.15 : 0 }}
+            transition={{ duration: 0.5 }}
+            className="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent"
+          />
         </div>
-      </div>
 
-      {/* Decorative corner elements */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={isInView ? { opacity: 1 } : {}}
-        transition={{ duration: 1, delay: 1 }}
-        className="absolute top-16 right-16 hidden lg:block"
-      >
-        <div className="w-24 h-24 border-t border-r border-parchment/10" />
-      </motion.div>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={isInView ? { opacity: 1 } : {}}
-        transition={{ duration: 1, delay: 1 }}
-        className="absolute bottom-16 left-16 hidden lg:block"
-      >
-        <div className="w-24 h-24 border-b border-l border-parchment/10" />
-      </motion.div>
+        {/* Content overlay */}
+        <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
+          {/* Top icon */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
+            className="absolute top-6 left-6 md:top-8 md:left-8"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center">
+              <span className="text-white/80">{experience.icon}</span>
+            </div>
+          </motion.div>
+
+          {/* Price tag */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
+            className="absolute top-6 right-6 md:top-8 md:right-8"
+          >
+            <div className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
+              <span className="text-white font-medium text-sm">{experience.price}</span>
+            </div>
+          </motion.div>
+
+          {/* Main content */}
+          <div className="space-y-4">
+            {/* Tagline */}
+            <motion.span
+              animate={{ y: isHovered ? -4 : 0 }}
+              transition={{ duration: 0.4 }}
+              className="inline-block text-xs tracking-[0.2em] uppercase text-white/50"
+            >
+              {experience.tagline}
+            </motion.span>
+
+            {/* Title */}
+            <motion.h3
+              animate={{ y: isHovered ? -4 : 0 }}
+              transition={{ duration: 0.4, delay: 0.05 }}
+              className="font-serif text-2xl md:text-3xl text-white leading-tight"
+            >
+              {experience.title}
+            </motion.h3>
+
+            {/* Description - shows on hover */}
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ 
+                height: isHovered ? "auto" : 0,
+                opacity: isHovered ? 1 : 0
+              }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="overflow-hidden"
+            >
+              <p className="text-white/60 text-sm leading-relaxed mb-4">
+                {experience.description}
+              </p>
+              
+              {/* Duration */}
+              <div className="flex items-center gap-2 text-white/40 text-sm mb-4">
+                <Clock className="w-4 h-4" />
+                <span>{experience.duration}</span>
+              </div>
+            </motion.div>
+
+            {/* CTA Button */}
+            <motion.div
+              animate={{ 
+                y: isHovered ? 0 : 10,
+                opacity: isHovered ? 1 : 0
+              }}
+              transition={{ duration: 0.4, delay: 0.15 }}
+            >
+              <a href="#book">
+                <Button 
+                  variant="outline" 
+                  className="w-full py-6 text-xs tracking-[0.15em] uppercase font-sans border-white/20 text-white bg-white/5 hover:bg-white hover:text-stone-900 backdrop-blur-sm transition-all duration-300"
+                >
+                  Book Now
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </a>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Decorative corner */}
+        <motion.div
+          animate={{ opacity: isHovered ? 1 : 0 }}
+          transition={{ duration: 0.4 }}
+          className="absolute top-0 right-0 w-24 h-24"
+        >
+          <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-white/20 rounded-tr-xl" />
+        </motion.div>
+      </div>
     </motion.div>
   );
 };
 
-// Booking Section
+// Booking Section with warm aesthetic
 const BookingSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
@@ -547,62 +416,43 @@ const BookingSection = () => {
       <section
         id="book"
         ref={ref}
-        className="relative py-32 md:py-40 overflow-hidden bg-charcoal"
+        className="relative py-24 md:py-32 overflow-hidden"
+        style={{
+          background: "linear-gradient(180deg, #1c1917 0%, #292524 50%, #1c1917 100%)"
+        }}
       >
-        {/* Atmospheric background */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-charcoal via-charcoal to-charcoal" />
-          <FloatingOrb className="text-terracotta -left-48 top-1/4" size="lg" delay={0.5} />
-          <FloatingOrb className="text-primary -right-48 bottom-1/4" size="md" delay={0.8} />
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl" />
         </div>
 
-        {/* Decorative lines */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <motion.div
-            initial={{ scaleY: 0 }}
-            animate={isInView ? { scaleY: 1 } : {}}
-            transition={{ duration: 1.5, delay: 0.2 }}
-            className="absolute left-1/4 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-parchment/5 to-transparent origin-top"
-          />
-          <motion.div
-            initial={{ scaleY: 0 }}
-            animate={isInView ? { scaleY: 1 } : {}}
-            transition={{ duration: 1.5, delay: 0.4 }}
-            className="absolute right-1/4 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-parchment/5 to-transparent origin-top"
-          />
-        </div>
-
-        <div className="container relative max-w-2xl mx-auto px-6">
+        <div className="container relative max-w-xl mx-auto px-6">
           {/* Section header */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 1 }}
-            className="text-center mb-16"
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
           >
             <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={isInView ? { scale: 1, rotate: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.2, type: "spring" }}
-              className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-terracotta/20 to-transparent border border-terracotta/20 mb-8"
+              initial={{ scale: 0 }}
+              animate={isInView ? { scale: 1 } : {}}
+              transition={{ duration: 0.6, delay: 0.2, type: "spring" }}
+              className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/10 border border-orange-500/20 mb-6"
             >
-              <Sparkles className="w-7 h-7 text-terracotta" />
+              <Sparkles className="w-6 h-6 text-orange-400" />
             </motion.div>
             
-            <span className="block font-sans text-xs tracking-[0.4em] uppercase text-terracotta mb-6">
-              Begin your journey
+            <span className="block font-sans text-xs tracking-[0.3em] uppercase text-orange-400/80 mb-4">
+              Reserve Your Spot
             </span>
-            <h2 className="font-serif text-5xl md:text-6xl text-parchment mb-6">
-              Reserve Your
-              <br />
-              <span className="italic font-light">Experience</span>
+            <h2 className="font-serif text-4xl md:text-5xl text-stone-100 mb-3">
+              Book an Experience
             </h2>
-            <motion.div
-              initial={{ scaleX: 0 }}
-              animate={isInView ? { scaleX: 1 } : {}}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              className="w-24 h-px bg-gradient-to-r from-transparent via-terracotta/40 to-transparent mx-auto"
-            />
+            <p className="text-stone-400 max-w-md mx-auto">
+              Choose your experience and let us create something beautiful together
+            </p>
           </motion.div>
 
           {/* Auth prompt */}
@@ -611,19 +461,19 @@ const BookingSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.4 }}
-              className="bg-parchment/5 backdrop-blur-sm border border-parchment/10 rounded-2xl p-10 mb-10 text-center"
+              className="bg-stone-800/50 backdrop-blur-sm border border-stone-700/50 rounded-2xl p-8 mb-8 text-center"
             >
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-parchment/5 border border-parchment/10 mb-6">
-                <LogIn className="w-6 h-6 text-parchment/60" />
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-stone-700/50 mb-4">
+                <LogIn className="w-5 h-5 text-stone-400" />
               </div>
-              <p className="text-parchment/60 mb-8 text-lg">Please sign in to book an experience</p>
+              <p className="text-stone-400 mb-6">Please sign in to book an experience</p>
               <Link to="/auth">
-                <MagneticButton 
+                <Button 
                   variant="outline" 
-                  className="px-10 py-6 text-xs tracking-[0.2em] uppercase border-parchment/30 text-parchment hover:bg-parchment hover:text-charcoal"
+                  className="px-8 py-5 text-xs tracking-[0.15em] uppercase border-orange-500/30 text-orange-400 hover:bg-orange-500 hover:text-white hover:border-orange-500"
                 >
                   Sign In
-                </MagneticButton>
+                </Button>
               </Link>
             </motion.div>
           )}
@@ -632,25 +482,25 @@ const BookingSection = () => {
           <motion.form
             initial={{ opacity: 0, y: 40 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 1, delay: 0.5 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
             onSubmit={handleSubmit}
-            className="space-y-8 bg-parchment/5 backdrop-blur-xl border border-parchment/10 rounded-3xl p-8 md:p-12"
+            className="space-y-6 bg-stone-800/30 backdrop-blur-xl border border-stone-700/40 rounded-3xl p-6 md:p-8"
           >
             {/* Experience Type */}
-            <div className="space-y-4">
-              <label className="font-sans text-xs tracking-[0.2em] uppercase text-parchment/50">
+            <div className="space-y-2">
+              <label className="font-sans text-xs tracking-[0.15em] uppercase text-stone-500">
                 Experience Type
               </label>
               <Select value={selectedExperience} onValueChange={setSelectedExperience}>
-                <SelectTrigger className="bg-parchment/5 border-parchment/20 h-14 text-parchment focus:ring-terracotta/30">
+                <SelectTrigger className="bg-stone-900/50 border-stone-700/50 h-14 text-stone-200 focus:ring-orange-500/30 focus:border-orange-500/50">
                   <SelectValue placeholder="Choose an experience" />
                 </SelectTrigger>
-                <SelectContent className="bg-charcoal border-parchment/20">
+                <SelectContent className="bg-stone-900 border-stone-700">
                   {experiences.map((exp) => (
                     <SelectItem 
                       key={exp.id} 
                       value={exp.id}
-                      className="text-parchment focus:bg-parchment/10 focus:text-parchment"
+                      className="text-stone-200 focus:bg-stone-800 focus:text-white"
                     >
                       {exp.title} - {exp.price}
                     </SelectItem>
@@ -659,67 +509,70 @@ const BookingSection = () => {
               </Select>
             </div>
 
-            {/* Date Picker */}
-            <div className="space-y-4">
-              <label className="font-sans text-xs tracking-[0.2em] uppercase text-parchment/50">
-                Preferred Date
-              </label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal bg-parchment/5 border-parchment/20 h-14 text-parchment hover:bg-parchment/10",
-                      !date && "text-parchment/50"
-                    )}
-                  >
-                    <Calendar className="mr-3 h-5 w-5" />
-                    {date ? format(date, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-charcoal border-parchment/20" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Time Slot */}
-            <div className="space-y-4">
-              <label className="font-sans text-xs tracking-[0.2em] uppercase text-parchment/50">
-                Time Slot
-              </label>
-              <Select value={timeSlot} onValueChange={setTimeSlot}>
-                <SelectTrigger className="bg-parchment/5 border-parchment/20 h-14 text-parchment focus:ring-terracotta/30">
-                  <SelectValue placeholder="Select a time" />
-                </SelectTrigger>
-                <SelectContent className="bg-charcoal border-parchment/20">
-                  {timeSlots.map((slot) => (
-                    <SelectItem 
-                      key={slot} 
-                      value={slot}
-                      className="text-parchment focus:bg-parchment/10 focus:text-parchment"
+            {/* Date & Time Row */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Date Picker */}
+              <div className="space-y-2">
+                <label className="font-sans text-xs tracking-[0.15em] uppercase text-stone-500">
+                  Date
+                </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal bg-stone-900/50 border-stone-700/50 h-14 hover:bg-stone-800/50",
+                        !date ? "text-stone-500" : "text-stone-200"
+                      )}
                     >
-                      {slot}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                      <Calendar className="mr-2 h-4 w-4 text-stone-500" />
+                      {date ? format(date, "MMM d") : "Pick date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-stone-900 border-stone-700" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Time Slot */}
+              <div className="space-y-2">
+                <label className="font-sans text-xs tracking-[0.15em] uppercase text-stone-500">
+                  Time
+                </label>
+                <Select value={timeSlot} onValueChange={setTimeSlot}>
+                  <SelectTrigger className="bg-stone-900/50 border-stone-700/50 h-14 text-stone-200 focus:ring-orange-500/30">
+                    <SelectValue placeholder="Select time" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-stone-900 border-stone-700">
+                    {timeSlots.map((slot) => (
+                      <SelectItem 
+                        key={slot} 
+                        value={slot}
+                        className="text-stone-200 focus:bg-stone-800 focus:text-white"
+                      >
+                        {slot}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Number of Guests */}
-            <div className="space-y-4">
-              <label className="font-sans text-xs tracking-[0.2em] uppercase text-parchment/50">
+            <div className="space-y-2">
+              <label className="font-sans text-xs tracking-[0.15em] uppercase text-stone-500">
                 Number of People
               </label>
               <div className="relative">
-                <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-parchment/40" />
+                <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
                 <Input
                   type="number"
                   min="1"
@@ -727,22 +580,22 @@ const BookingSection = () => {
                   value={guests}
                   onChange={(e) => setGuests(e.target.value)}
                   placeholder="How many guests?"
-                  className="pl-12 bg-parchment/5 border-parchment/20 h-14 text-parchment placeholder:text-parchment/40 focus:ring-terracotta/30"
+                  className="pl-11 bg-stone-900/50 border-stone-700/50 h-14 text-stone-200 placeholder:text-stone-500 focus:ring-orange-500/30 focus:border-orange-500/50"
                 />
               </div>
             </div>
 
             {/* Notes */}
-            <div className="space-y-4">
-              <label className="font-sans text-xs tracking-[0.2em] uppercase text-parchment/50">
-                Notes <span className="text-parchment/30 normal-case">(occasion, preferences)</span>
+            <div className="space-y-2">
+              <label className="font-sans text-xs tracking-[0.15em] uppercase text-stone-500">
+                Special Requests <span className="text-stone-600 normal-case">(optional)</span>
               </label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Tell us about your occasion..."
-                rows={4}
-                className="bg-parchment/5 border-parchment/20 text-parchment placeholder:text-parchment/40 resize-none focus:ring-terracotta/30"
+                rows={3}
+                className="bg-stone-900/50 border-stone-700/50 text-stone-200 placeholder:text-stone-500 resize-none focus:ring-orange-500/30 focus:border-orange-500/50"
               />
             </div>
 
@@ -753,11 +606,11 @@ const BookingSection = () => {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="bg-gradient-to-r from-terracotta/10 to-transparent rounded-2xl p-8 border border-terracotta/20"
+                  className="bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent rounded-2xl p-6 border border-orange-500/20"
                 >
                   <div className="flex justify-between items-center">
-                    <span className="text-parchment/60 font-sans text-sm tracking-wide">Total Amount</span>
-                    <span className="font-serif text-4xl text-parchment">
+                    <span className="text-stone-400 text-sm">Total Amount</span>
+                    <span className="font-serif text-3xl text-stone-100">
                       ₹{totalAmount.toLocaleString()}
                     </span>
                   </div>
@@ -766,10 +619,10 @@ const BookingSection = () => {
             </AnimatePresence>
 
             {/* Submit button */}
-            <MagneticButton
+            <Button
               type="submit"
               disabled={isSubmitting || !user}
-              className="w-full py-8 text-xs tracking-[0.25em] uppercase font-sans bg-terracotta hover:bg-terracotta/90 text-parchment transition-all duration-500 rounded-xl"
+              className="w-full py-7 text-xs tracking-[0.2em] uppercase font-sans bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg shadow-orange-500/20 transition-all duration-300 rounded-xl"
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center gap-3">
@@ -783,13 +636,13 @@ const BookingSection = () => {
                 </span>
               ) : user ? (
                 <span className="flex items-center justify-center gap-3">
-                  Book & Pay
+                  Complete Booking
                   <ArrowRight className="w-4 h-4" />
                 </span>
               ) : (
                 "Sign In to Book"
               )}
-            </MagneticButton>
+            </Button>
           </motion.form>
         </div>
       </section>
@@ -797,103 +650,38 @@ const BookingSection = () => {
   );
 };
 
-// Philosophy Section
-const PhilosophySection = () => {
+// Statistics section
+const StatsSection = () => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.3 });
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  const stats = [
+    { number: "500+", label: "Happy Couples" },
+    { number: "150+", label: "Birthday Parties" },
+    { number: "50+", label: "Corporate Events" },
+    { number: "4.9", label: "Average Rating" }
+  ];
 
   return (
-    <section ref={ref} className="relative py-40 overflow-hidden bg-sand">
-      {/* Background */}
-      <div className="absolute inset-0">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 2 }}
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `radial-gradient(circle at 30% 50%, hsl(var(--terracotta) / 0.05) 0%, transparent 50%),
-                              radial-gradient(circle at 70% 50%, hsl(var(--moss) / 0.05) 0%, transparent 50%)`
-          }}
-        />
-      </div>
-
-      <div className="container relative max-w-5xl mx-auto px-6">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Image */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 1 }}
-            className="relative"
-          >
-            <div className="aspect-[4/5] rounded-3xl overflow-hidden">
-              <img
-                src={potteryCollection}
-                alt="Pottery collection"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-charcoal/50 via-transparent to-transparent" />
-            </div>
-            {/* Floating quote */}
+    <section ref={ref} className="py-20 bg-sand border-y border-stone-200">
+      <div className="container max-w-5xl mx-auto px-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {stats.map((stat, i) => (
             <motion.div
+              key={stat.label}
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              className="absolute -bottom-8 -right-8 bg-parchment p-8 rounded-2xl shadow-xl max-w-xs"
+              transition={{ duration: 0.6, delay: i * 0.1 }}
+              className="text-center"
             >
-              <p className="font-serif text-lg text-deep-clay italic leading-relaxed">
-                "Every imperfection tells a story of human touch."
-              </p>
-            </motion.div>
-          </motion.div>
-
-          {/* Content */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 1, delay: 0.2 }}
-            className="space-y-8"
-          >
-            <div className="flex items-center gap-4">
-              <span className="w-12 h-px bg-terracotta" />
-              <span className="text-xs font-sans tracking-[0.3em] uppercase text-terracotta">
-                Our Philosophy
+              <span className="block font-serif text-4xl md:text-5xl text-deep-clay mb-2">
+                {stat.number}
               </span>
-            </div>
-
-            <h2 className="font-serif text-4xl md:text-5xl text-deep-clay leading-tight">
-              Experiences that
-              <br />
-              <span className="italic font-light">shape memories</span>
-            </h2>
-
-            <p className="text-muted-foreground text-lg leading-relaxed">
-              We believe in the transformative power of creating with your hands. 
-              Each experience is designed not just to teach, but to reconnect—with 
-              loved ones, with nature, and with the meditative rhythm of clay.
-            </p>
-
-            <p className="text-muted-foreground leading-relaxed">
-              Whether it's a quiet couple's evening at the wheel or a joyful 
-              celebration under open skies, every session becomes a story worth 
-              remembering.
-            </p>
-
-            <div className="flex flex-wrap gap-4 pt-4">
-              {["Intimate Settings", "Expert Guidance", "Lasting Keepsakes"].map((item, i) => (
-                <motion.span
-                  key={item}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                  transition={{ duration: 0.5, delay: 0.8 + i * 0.1 }}
-                  className="px-5 py-2.5 rounded-full border border-deep-clay/20 text-sm text-deep-clay/80"
-                >
-                  {item}
-                </motion.span>
-              ))}
-            </div>
-          </motion.div>
+              <span className="text-sm text-stone-500 tracking-wide">
+                {stat.label}
+              </span>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
@@ -906,9 +694,8 @@ const Experiences = () => {
   const isHeroInView = useInView(heroRef, { once: true });
   const location = useLocation();
   const { scrollYProgress } = useScroll();
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
-  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 1.15]);
-  const heroY = useTransform(scrollYProgress, [0, 0.3], [0, 100]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.3], [1, 1.1]);
 
   useEffect(() => {
     if (location.hash) {
@@ -923,7 +710,7 @@ const Experiences = () => {
   }, [location.hash]);
 
   return (
-    <div className="min-h-screen bg-charcoal">
+    <div className="min-h-screen bg-sand">
       <Helmet>
         <title>Experiences | Basho by Shivangi - Create Moments with Clay</title>
         <meta
@@ -932,171 +719,240 @@ const Experiences = () => {
         />
       </Helmet>
 
-      <GrainOverlay />
       <Navigation />
 
-      {/* Immersive Hero Section */}
+      {/* Hero Section - Clean & Elegant */}
       <section 
         ref={heroRef} 
-        className="relative h-[100vh] min-h-[800px] flex items-center justify-center overflow-hidden"
+        className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-stone-900"
       >
-        {/* Parallax Background with video-like effect */}
+        {/* Background Image with Parallax */}
         <motion.div 
-          style={{ scale: heroScale, y: heroY }}
-          className="absolute inset-0"
+          style={{ scale: heroScale }}
+          className="absolute inset-0 z-0"
         >
           <img
-            src={handsImage}
-            alt="Hands shaping clay together"
-            className="w-full h-full object-cover"
+            src={potteryCollection}
+            alt="Pottery collection"
+            className="w-full h-full object-cover opacity-50"
           />
-          {/* Multi-layer gradient overlay for depth */}
-          <div className="absolute inset-0 bg-gradient-to-b from-charcoal/80 via-charcoal/40 to-charcoal" />
-          <div className="absolute inset-0 bg-gradient-to-r from-charcoal/60 via-transparent to-charcoal/60" />
+          <div className="absolute inset-0 bg-gradient-to-b from-stone-900/80 via-stone-900/60 to-stone-900" />
         </motion.div>
-
-        {/* Floating orbs */}
-        <FloatingOrb className="text-terracotta top-1/4 -left-32" size="lg" delay={0.5} />
-        <FloatingOrb className="text-moss top-1/3 -right-24" size="md" delay={0.8} />
-        <FloatingOrb className="text-amber bottom-1/4 left-1/4" size="sm" delay={1.1} />
 
         {/* Hero Content */}
         <motion.div 
           style={{ opacity: heroOpacity }}
-          className="relative z-10 text-center px-6 max-w-5xl mx-auto"
+          className="relative z-10 text-center px-6 max-w-4xl mx-auto"
         >
-          {/* Decorative circular element */}
+          {/* Decorative element */}
           <motion.div
-            initial={{ opacity: 0, scale: 0, rotate: -180 }}
-            animate={isHeroInView ? { opacity: 1, scale: 1, rotate: 0 } : {}}
-            transition={{ duration: 1.2, delay: 0.3, type: "spring" }}
-            className="inline-flex items-center justify-center w-28 h-28 rounded-full border border-parchment/10 mb-12 relative"
+            initial={{ opacity: 0, scale: 0 }}
+            animate={isHeroInView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="inline-flex items-center gap-3 mb-8"
           >
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-2 rounded-full border border-parchment/5"
-            />
-            <motion.div
-              animate={{ rotate: -360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-4 rounded-full border border-dashed border-parchment/10"
-            />
-            <Sparkles className="w-6 h-6 text-terracotta" />
+            <span className="w-12 h-px bg-gradient-to-r from-transparent to-orange-400/60" />
+            <Sparkles className="w-5 h-5 text-orange-400" />
+            <span className="w-12 h-px bg-gradient-to-l from-transparent to-orange-400/60" />
           </motion.div>
 
           {/* Tagline */}
           <motion.span
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 1, delay: 0.5 }}
-            className="block font-sans text-xs tracking-[0.5em] uppercase text-terracotta mb-8"
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="block font-sans text-xs tracking-[0.4em] uppercase text-orange-400/80 mb-6"
           >
             Curated Pottery Experiences
           </motion.span>
 
-          {/* Main heading - dramatic split */}
-          <div className="overflow-hidden mb-8">
-            <motion.h1
-              initial={{ y: 120 }}
-              animate={isHeroInView ? { y: 0 } : {}}
-              transition={{ duration: 1.2, delay: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-              className="font-serif text-6xl md:text-8xl lg:text-[10rem] text-parchment leading-[0.85] tracking-tight"
-            >
-              Create
-            </motion.h1>
-          </div>
-          <div className="overflow-hidden mb-12">
-            <motion.h1
-              initial={{ y: 120 }}
-              animate={isHeroInView ? { y: 0 } : {}}
-              transition={{ duration: 1.2, delay: 0.75, ease: [0.25, 0.1, 0.25, 1] }}
-              className="font-serif text-6xl md:text-8xl lg:text-[10rem] text-parchment leading-[0.85] italic font-light"
-            >
-              Moments
-            </motion.h1>
-          </div>
+          {/* Main heading */}
+          <motion.h1
+            initial={{ opacity: 0, y: 40 }}
+            animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 1, delay: 0.4 }}
+            className="font-serif text-5xl md:text-7xl lg:text-8xl text-stone-100 leading-[0.95] mb-8"
+          >
+            Create Moments
+            <br />
+            <span className="italic font-light text-stone-300">with Clay</span>
+          </motion.h1>
 
           {/* Subtitle */}
           <motion.p
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 1, delay: 1 }}
-            className="font-sans text-parchment/50 text-lg md:text-xl max-w-xl mx-auto leading-relaxed"
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="font-sans text-stone-400 text-lg md:text-xl max-w-xl mx-auto leading-relaxed mb-12"
           >
             Intimate gatherings where hands meet clay, 
             creating memories that endure beyond the moment.
           </motion.p>
 
-          {/* Scroll CTA */}
+          {/* CTA Buttons */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={isHeroInView ? { opacity: 1 } : {}}
-            transition={{ delay: 1.5 }}
-            className="mt-16"
+            initial={{ opacity: 0, y: 20 }}
+            animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <a href="#couple" className="inline-block group">
-              <motion.div
-                animate={{ y: [0, 10, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="flex flex-col items-center gap-4"
+            <a href="#experiences">
+              <Button 
+                className="px-8 py-6 text-xs tracking-[0.15em] uppercase font-sans bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg shadow-orange-500/20"
               >
-                <span className="text-xs tracking-[0.2em] uppercase text-parchment/40 group-hover:text-parchment/60 transition-colors">
-                  Explore Experiences
-                </span>
-                <div className="w-px h-16 bg-gradient-to-b from-parchment/40 to-transparent" />
-              </motion.div>
+                Explore Experiences
+                <ArrowDown className="w-4 h-4 ml-2" />
+              </Button>
+            </a>
+            <a href="#book">
+              <Button 
+                variant="outline"
+                className="px-8 py-6 text-xs tracking-[0.15em] uppercase font-sans border-stone-600 text-stone-300 hover:bg-stone-800 hover:text-white"
+              >
+                Book Now
+              </Button>
             </a>
           </motion.div>
         </motion.div>
 
-        {/* Decorative corner frames */}
+        {/* Scroll indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={isHeroInView ? { opacity: 1 } : {}}
-          transition={{ duration: 1, delay: 1.2 }}
-          className="absolute top-24 left-8 md:left-16"
+          transition={{ delay: 1.2 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2"
         >
-          <div className="w-16 md:w-24 h-16 md:h-24 border-t border-l border-parchment/10" />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isHeroInView ? { opacity: 1 } : {}}
-          transition={{ duration: 1, delay: 1.2 }}
-          className="absolute top-24 right-8 md:right-16"
-        >
-          <div className="w-16 md:w-24 h-16 md:h-24 border-t border-r border-parchment/10" />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isHeroInView ? { opacity: 1 } : {}}
-          transition={{ duration: 1, delay: 1.2 }}
-          className="absolute bottom-32 left-8 md:left-16"
-        >
-          <div className="w-16 md:w-24 h-16 md:h-24 border-b border-l border-parchment/10" />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isHeroInView ? { opacity: 1 } : {}}
-          transition={{ duration: 1, delay: 1.2 }}
-          className="absolute bottom-32 right-8 md:right-16"
-        >
-          <div className="w-16 md:w-24 h-16 md:h-24 border-b border-r border-parchment/10" />
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="w-6 h-10 rounded-full border-2 border-stone-600 flex items-start justify-center p-1.5"
+          >
+            <motion.div
+              animate={{ y: [0, 12, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="w-1.5 h-3 bg-stone-500 rounded-full"
+            />
+          </motion.div>
         </motion.div>
       </section>
 
-      {/* Full-screen Experience Sections */}
-      {experiences.map((experience, index) => (
-        <FullScreenExperienceCard
-          key={experience.id}
-          experience={experience}
-          index={index}
-          isActive={true}
-        />
-      ))}
+      {/* Stats Section */}
+      <StatsSection />
 
-      {/* Philosophy Section */}
-      <PhilosophySection />
+      {/* Experience Cards Grid */}
+      <section id="experiences" className="py-20 md:py-32 bg-sand">
+        <div className="container max-w-6xl mx-auto px-6">
+          {/* Section header */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <span className="block font-sans text-xs tracking-[0.3em] uppercase text-terracotta mb-4">
+              Our Offerings
+            </span>
+            <h2 className="font-serif text-4xl md:text-5xl text-deep-clay mb-4">
+              Choose Your Experience
+            </h2>
+            <p className="text-stone-500 max-w-lg mx-auto">
+              From intimate couple sessions to joyful celebrations, each experience is designed to create lasting connections.
+            </p>
+          </motion.div>
+
+          {/* Cards grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {experiences.map((experience, index) => (
+              <ExperienceCard key={experience.id} experience={experience} index={index} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Large feature image section */}
+      <section className="relative py-32 overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src={glazingImage}
+            alt="Pottery glazing process"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-stone-950/70" />
+        </div>
+        
+        <div className="container relative z-10 max-w-4xl mx-auto px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <span className="block font-sans text-xs tracking-[0.3em] uppercase text-orange-400/80 mb-6">
+              Our Philosophy
+            </span>
+            <blockquote className="font-serif text-3xl md:text-4xl lg:text-5xl text-stone-100 leading-relaxed mb-8 italic">
+              "Every imperfection tells a story of human touch. Every piece carries the warmth of the moment it was made."
+            </blockquote>
+            <p className="text-stone-400">— Shivangi, Founder</p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* What to Expect */}
+      <section className="py-20 md:py-28 bg-parchment">
+        <div className="container max-w-5xl mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <span className="block font-sans text-xs tracking-[0.3em] uppercase text-terracotta mb-4">
+              What to Expect
+            </span>
+            <h2 className="font-serif text-4xl md:text-5xl text-deep-clay">
+              Your Experience Includes
+            </h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <Palette className="w-6 h-6" />,
+                title: "All Materials",
+                description: "Premium clay, tools, glazes, and firing—everything you need to create."
+              },
+              {
+                icon: <Users className="w-6 h-6" />,
+                title: "Expert Guidance",
+                description: "Patient, personalized instruction for all skill levels."
+              },
+              {
+                icon: <Star className="w-6 h-6" />,
+                title: "Take Home",
+                description: "Your finished, fired piece delivered within 2-3 weeks."
+              }
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                className="text-center p-8 rounded-2xl bg-white/50 border border-stone-200"
+              >
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-terracotta/10 text-terracotta mb-6">
+                  {item.icon}
+                </div>
+                <h3 className="font-serif text-xl text-deep-clay mb-3">{item.title}</h3>
+                <p className="text-stone-500">{item.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Booking Section */}
       <BookingSection />
