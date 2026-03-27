@@ -8,6 +8,7 @@ import { CartProvider } from "@/hooks/useCart";
 import { AuthProvider } from "@/hooks/useAuth";
 import { WishlistProvider } from "@/hooks/useWishlist";
 import AnimatedRoutes from "@/components/AnimatedRoutes";
+import AppInitializer from "@/components/AppInitializer";
 import ScrollRestoration from "@/components/ScrollRestoration";
 
 const queryClient = new QueryClient();
@@ -23,7 +24,9 @@ const App = () => (
               <Sonner />
               <BrowserRouter>
                 <ScrollRestoration />
-                <AnimatedRoutes />
+                <AppInitializer>
+                  <AnimatedRoutes />
+                </AppInitializer>
               </BrowserRouter>
             </WishlistProvider>
           </CartProvider>
